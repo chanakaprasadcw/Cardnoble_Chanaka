@@ -1,0 +1,89 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Support Tickets{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-lg font-semibold text-gray-900">Support Tickets</h2>
+        <div class="flex space-x-2">
+            <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
+                {{ tickets|selectattr('status', 'equalto', 'open')|list|length }} Open
+            </span>
+            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                {{ tickets|selectattr('status', 'equalto', 'in_progress')|list|length }} In Progress
+            </span>
+        </div>
+    </div>
+
+    <!-- Tickets Table -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for ticket in tickets %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-mono text-sm">#{{ ticket.id }}</td>
+                    <td class="px-6 py-4">
+                        <p class="font-medium text-gray-900">{{ ticket.subject }}</p>
+                        <p class="text-sm text-gray-500 truncate max-w-xs">{{ ticket.content[:50] }}...</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        <p class="text-gray-900">{{ ticket.user.name if ticket.user else 'Guest' }}</p>
+                        <p class="text-sm text-gray-500">{{ ticket.user.email if ticket.user else '-' }}</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs rounded-full 
+                            {% if ticket.priority == 'high' %}bg-red-100 text-red-800
+                            {% elif ticket.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ ticket.priority|capitalize }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <form action="{{ url_for('admin.update_ticket_status', id=ticket.id) }}" method="POST">
+                            <select name="status" onchange="this.form.submit()"
+                                class="text-sm border rounded px-2 py-1">
+                                <option value="open" {{ 'selected' if ticket.status=='open' }}>Open</option>
+                                <option value="in_progress" {{ 'selected' if ticket.status=='in_progress' }}>In Progress
+                                </option>
+                                <option value="resolved" {{ 'selected' if ticket.status=='resolved' }}>Resolved</option>
+                                <option value="closed" {{ 'selected' if ticket.status=='closed' }}>Closed</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500">{{ ticket.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex space-x-3">
+                            <a href="{{ url_for('admin.view_ticket', id=ticket.id) }}"
+                                class="text-indigo-600 hover:text-indigo-800 text-sm">View</a>
+                            <form action="{{ url_for('admin.delete_ticket', id=ticket.id) }}" method="POST"
+                                onsubmit="return confirm('Delete this ticket?')">
+                                <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                        No tickets yet. Customer support requests will appear here.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

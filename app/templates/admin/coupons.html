@@ -1,0 +1,132 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Coupons{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-lg font-semibold text-gray-900">Manage Coupons</h2>
+        <button onclick="document.getElementById('createModal').classList.remove('hidden')"
+            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+            + Add Coupon
+        </button>
+    </div>
+
+    <!-- Coupons Table -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Discount</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Min Order</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Uses</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expires</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for coupon in coupons %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-mono font-medium text-indigo-600">{{ coupon.code }}</td>
+                    <td class="px-6 py-4">
+                        {% if coupon.discount_type == 'percentage' %}
+                        {{ coupon.discount_value }}%
+                        {% else %}
+                        ${{ "%.2f"|format(coupon.discount_value) }}
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">${{ "%.2f"|format(coupon.min_order) }}</td>
+                    <td class="px-6 py-4">{{ coupon.uses }} / {{ coupon.max_uses or '∞' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                        {{ coupon.expires_at.strftime('%Y-%m-%d') if coupon.expires_at else 'Never' }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <form action="{{ url_for('admin.toggle_coupon', id=coupon.id) }}" method="POST" class="inline">
+                            <button type="submit"
+                                class="px-2 py-1 text-xs rounded-full {{ 'bg-green-100 text-green-800' if coupon.is_active else 'bg-gray-100 text-gray-600' }}">
+                                {{ 'Active' if coupon.is_active else 'Inactive' }}
+                            </button>
+                        </form>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex space-x-2">
+                            <a href="{{ url_for('admin.edit_coupon', id=coupon.id) }}"
+                                class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                            <form action="{{ url_for('admin.delete_coupon', id=coupon.id) }}" method="POST"
+                                class="inline" onsubmit="return confirm('Delete this coupon?')">
+                                <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                        No coupons yet. Click "Add Coupon" to create one.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div id="createModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Create Coupon</h3>
+            <button onclick="document.getElementById('createModal').classList.add('hidden')"
+                class="text-gray-400 hover:text-gray-600">
+                ✕
+            </button>
+        </div>
+        <form action="{{ url_for('admin.create_coupon') }}" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Coupon Code</label>
+                <input type="text" name="code" required
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="SAVE10">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Discount Type</label>
+                    <select name="discount_type" class="w-full px-3 py-2 border rounded-lg">
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="fixed">Fixed Amount ($)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Discount Value</label>
+                    <input type="number" name="discount_value" step="0.01" required
+                        class="w-full px-3 py-2 border rounded-lg" placeholder="10">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Min Order ($)</label>
+                    <input type="number" name="min_order" step="0.01" value="0"
+                        class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Max Uses</label>
+                    <input type="number" name="max_uses" value="0" class="w-full px-3 py-2 border rounded-lg"
+                        placeholder="0 = unlimited">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Expires At</label>
+                <input type="date" name="expires_at" class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            <div class="flex justify-end space-x-3 pt-4">
+                <button type="button" onclick="document.getElementById('createModal').classList.add('hidden')"
+                    class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Create
+                    Coupon</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

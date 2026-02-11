@@ -1,0 +1,101 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Add Product{% endblock %}
+
+{% block admin_content %}
+<div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="POST" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Basic Info -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-medium text-gray-900">Basic Information</h3>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Product Name</label>
+                    <input type="text" name="name" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Slug</label>
+                    <input type="text" name="slug" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Category</label>
+                    <select name="category_id"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Image URL</label>
+                    <input type="url" name="image_url"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+            </div>
+
+            <!-- Card Details -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-medium text-gray-900">Card Details</h3>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Set Name</label>
+                    <input type="text" name="set_name"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Set Code</label>
+                    <input type="text" name="set_code"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Rarity</label>
+                    <input type="text" name="rarity"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Card Type</label>
+                    <input type="text" name="card_type"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+            </div>
+
+            <!-- Initial Stock -->
+            <div class="col-span-1 md:col-span-2 space-y-4 border-t pt-6">
+                <h3 class="text-lg font-medium text-gray-900">Initial Stock (NM)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Quantity</label>
+                        <input type="number" name="quantity" value="0" min="0"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Price ($)</label>
+                        <input type="number" name="price" value="0.00" min="0" step="0.01"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-4 pt-6 text-sm">
+            <a href="{{ url_for('admin.inventory') }}"
+                class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Cancel
+            </a>
+            <button type="submit"
+                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Create Product
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

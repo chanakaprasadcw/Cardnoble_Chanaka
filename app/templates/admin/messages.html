@@ -1,0 +1,109 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Messages{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-lg font-semibold text-gray-900">Customer Messages</h2>
+        <div class="flex space-x-2">
+            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                {{ messages|selectattr('is_read', 'equalto', false)|list|length }} Unread
+            </span>
+        </div>
+    </div>
+
+    <!-- Messages List -->
+    <div class="bg-white rounded-xl shadow-sm divide-y divide-gray-200">
+        {% for message in messages %}
+        <div class="p-4 hover:bg-gray-50 {{ 'bg-blue-50' if not message.is_read else '' }}">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                            <span class="text-indigo-600 font-medium">{{ message.user.name[0] if message.user and
+                                message.user.name else '?' }}</span>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">
+                                {{ message.user.name if message.user else 'Guest' }}
+                                {% if not message.is_read %}
+                                <span class="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded">New</span>
+                                {% endif %}
+                            </p>
+                            <p class="text-sm text-gray-500">{{ message.user.email if message.user else 'No email' }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-2 ml-13">
+                        <p class="font-medium text-gray-800">{{ message.subject }}</p>
+                        <p class="text-gray-600 text-sm mt-1">{{ message.content[:150] }}{{ '...' if
+                            message.content|length > 150 else '' }}</p>
+                    </div>
+                </div>
+                <div class="text-right text-sm text-gray-500">
+                    <p>{{ message.created_at.strftime('%b %d, %Y') }}</p>
+                    <p>{{ message.created_at.strftime('%H:%M') }}</p>
+                </div>
+            </div>
+            <div class="mt-3 ml-13 flex space-x-3">
+                {% if not message.is_read %}
+                <form action="{{ url_for('admin.mark_message_read', id=message.id) }}" method="POST">
+                    <button type="submit" class="text-sm text-indigo-600 hover:text-indigo-800">Mark as Read</button>
+                </form>
+                {% endif %}
+                <button onclick="openReplyModal({{ message.id }}, '{{ message.user.email if message.user else '' }}')"
+                    class="text-sm text-green-600 hover:text-green-800">Reply</button>
+                <form action="{{ url_for('admin.delete_message', id=message.id) }}" method="POST"
+                    onsubmit="return confirm('Delete this message?')">
+                    <button type="submit" class="text-sm text-red-600 hover:text-red-800">Delete</button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="p-12 text-center text-gray-500">
+            No messages yet. Customer inquiries will appear here.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Reply Modal -->
+<div id="replyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Reply to Message</h3>
+            <button onclick="document.getElementById('replyModal').classList.add('hidden')"
+                class="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        <form action="{{ url_for('admin.reply_message') }}" method="POST" class="space-y-4">
+            <input type="hidden" name="message_id" id="replyMessageId">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">To</label>
+                <input type="email" name="to" id="replyTo" readonly
+                    class="w-full px-3 py-2 border rounded-lg bg-gray-50">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                <textarea name="reply" rows="4" required
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="document.getElementById('replyModal').classList.add('hidden')"
+                    class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Send
+                    Reply</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openReplyModal(messageId, email) {
+        document.getElementById('replyMessageId').value = messageId;
+        document.getElementById('replyTo').value = email;
+        document.getElementById('replyModal').classList.remove('hidden');
+    }
+</script>
+{% endblock %}

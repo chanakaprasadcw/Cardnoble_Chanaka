@@ -1,0 +1,75 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Edit Product{% endblock %}
+
+{% block admin_content %}
+<div class="bg-white rounded-xl shadow-sm p-6">
+    <form method="POST" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Basic Info -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-medium text-gray-900">Basic Information</h3>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Product Name</label>
+                    <input type="text" name="name" value="{{ product.name }}" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Category</label>
+                    <!-- Display only, backend doesn't support changing category yet without more logic -->
+                    <input type="text" value="{{ product.category.name }}" disabled
+                        class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Image URL</label>
+                    <input type="url" name="image_url" value="{{ product.image_url }}"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+
+                {% if product.image_url %}
+                <div class="mt-2">
+                    <img src="{{ product.image_url }}" alt="Preview" class="h-32 object-contain rounded border">
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Card Details -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-medium text-gray-900">Card Details</h3>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Set Name</label>
+                    <input type="text" name="set_name" value="{{ product.set_name }}"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Set Code</label>
+                    <input type="text" name="set_code" value="{{ product.set_code }}"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Rarity</label>
+                    <input type="text" name="rarity" value="{{ product.rarity }}"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-4 pt-6 text-sm">
+            <a href="{{ url_for('admin.inventory') }}"
+                class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Cancel
+            </a>
+            <button type="submit"
+                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Cart - CardNoble{% endblock %}
+
+{% block content %}
+<header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <a href="{{ url_for('main.index') }}" class="text-2xl font-bold text-indigo-600">CardNoble</a>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Your Cart</h1>
+
+    {% if items %}
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-500">Product</th>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-500">Condition</th>
+                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-500">Qty</th>
+                    <th class="px-6 py-4 text-right text-sm font-medium text-gray-500">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for item in items %}
+                <tr>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <img src="{{ item.product.image_url }}" alt="" class="w-16 h-20 object-contain mr-4">
+                            <div>
+                                <p class="font-medium text-gray-900">{{ item.product.name }}</p>
+                                <p class="text-sm text-gray-500">{{ item.product.set_name }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-gray-600">{{ item.stock.condition }}</td>
+                    <td class="px-6 py-4 text-gray-600">{{ item.quantity }}</td>
+                    <td class="px-6 py-4 text-right font-bold text-gray-900">${{ "%.2f"|format(item.stock.price *
+                        item.quantity) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6 flex justify-between items-center">
+        <div>
+            <p class="text-gray-500">Total</p>
+            <p class="text-3xl font-bold text-gray-900">${{ "%.2f"|format(total) }}</p>
+        </div>
+        <a href="{{ url_for('main.checkout') }}"
+            class="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">
+            Proceed to Checkout
+        </a>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm p-12 text-center">
+        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <p class="text-gray-500 mb-4">Your cart is empty</p>
+        <a href="{{ url_for('main.products') }}" class="text-indigo-600 hover:underline">Continue shopping</a>
+    </div>
+    {% endif %}
+</main>
+{% endblock %}

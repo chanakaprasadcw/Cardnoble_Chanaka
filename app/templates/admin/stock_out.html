@@ -1,0 +1,67 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Stock-Out Orders{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-lg font-semibold text-gray-900">Stock-Out Orders</h2>
+        <a href="{{ url_for('admin.create_stock_order', type='stock_out') }}"
+            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+            + New Stock-Out
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <p class="text-sm text-gray-500">Total Stock-Out Orders</p>
+            <p class="text-3xl font-bold text-gray-900">{{ orders|length }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <p class="text-sm text-gray-500">Items Removed This Month</p>
+            <p class="text-3xl font-bold text-red-600">-{{ orders|sum(attribute='items')|length if orders else 0 }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <p class="text-sm text-gray-500">Reasons</p>
+            <p class="text-3xl font-bold text-gray-900">Damaged, Sold, Other</p>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for order in orders %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-mono">{{ order.reference or 'OUT-' + order.id|string }}</td>
+                    <td class="px-6 py-4">{{ order.items|length }} items</td>
+                    <td class="px-6 py-4 text-gray-500">{{ order.notes or '-' }}</td>
+                    <td class="px-6 py-4">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="px-6 py-4">
+                        <a href="{{ url_for('admin.view_stock_order', id=order.id) }}"
+                            class="text-indigo-600 hover:text-indigo-900">View</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                        No stock-out orders yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
