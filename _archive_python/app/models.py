@@ -250,3 +250,53 @@ class Box(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Binder(db.Model):
+    __tablename__ = 'binders'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, default='')
+    grid_size = db.Column(db.String(10), default='3x3')  # e.g. 2x2, 3x3, 4x3
+    cover_color = db.Column(db.String(20), default='#6366f1')  # hex color
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('binders', lazy=True))
+    cards = db.relationship('BinderCard', backref='binder', lazy=True, cascade='all, delete-orphan',
+                            order_by='BinderCard.position')
+
+    @property
+    def card_count(self):
+        return len(self.cards)
+
+    @property
+    def collected_count(self):
+        return sum(1 for c in self.cards if c.is_collected)
+
+    @property
+    def grid_cols(self):
+        return int(self.grid_size.split('x')[0])
+
+    @property
+    def grid_rows(self):
+        return int(self.grid_size.split('x')[1])
+
+    @property
+    def total_slots(self):
+        return self.grid_cols * self.grid_rows
+
+
+class BinderCard(db.Model):
+    __tablename__ = 'binder_cards'
+
+    id = db.Column(db.Integer, primary_key=True)
+    binder_id = db.Column(db.Integer, db.ForeignKey('binders.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    position = db.Column(db.Integer, nullable=False, default=0)  # slot index in grid
+    is_collected = db.Column(db.Boolean, default=False)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    product = db.relationship('Product')

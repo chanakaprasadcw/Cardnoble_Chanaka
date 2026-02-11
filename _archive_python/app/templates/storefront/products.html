@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if request.args.get('q') %}Search: "{{ request.args.get('q') }}" - {% elif request.args.get('category') %}{{
+categories|selectattr('slug', 'equalto', request.args.get('category'))|map(attribute='name')|first or 'Products' }} - {%
+endif %}Products - CardNoble
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<header class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50 backdrop-blur-md bg-opacity-90">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+            <!-- Logo -->
+            <a href="{{ url_for('main.index') }}" class="flex items-center gap-2 group">
+                <div
+                    class="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-lg flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-yellow-500/20">
+                    <span class="text-gray-900 font-bold text-xl">C</span>
+                </div>
+                <span
+                    class="text-2xl font-bold text-gray-100 font-display tracking-tight group-hover:text-yellow-500 transition-colors">CardNoble</span>
+            </a>
+
+            <!-- Search -->
+            <div class="flex-1 max-w-2xl mx-12 hidden md:block">
+                <form action="{{ url_for('main.products') }}" method="GET">
+                    <div class="relative group">
+                        <div
+                            class="absolute -inset-0.5 bg-gradient-to-r from-yellow-600 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200">
+                        </div>
+                        <div class="relative flex">
+                            <select name="category"
+                                class="px-4 py-2.5 bg-gray-800 border-r border-gray-700 text-gray-300 text-sm rounded-l-lg focus:outline-none focus:bg-gray-700 transition-colors">
+                                <option value="">All Categories</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.slug }}" {% if request.args.get('category')==cat.slug %}selected{%
+                                    endif %}>{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <input type="text" name="q" value="{{ request.args.get('q', '') }}"
+                                placeholder="Search for cards, sets, or products..."
+                                class="w-full px-5 py-2.5 bg-gray-800 text-gray-100 placeholder-gray-500 rounded-r-lg focus:outline-none focus:bg-gray-700 transition-colors">
+                            <button type="submit"
+                                class="absolute right-3 top-2.5 text-gray-400 hover:text-yellow-500 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Right Actions -->
+            <div class="flex items-center space-x-6">
+                <div
+                    class="flex items-center text-sm font-medium text-gray-400 bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700">
+                    <span class="text-yellow-500 mr-2">$</span> USD
+                </div>
+                <a href="{{ url_for('main.cart') }}" class="relative group p-2">
+                    <div
+                        class="absolute -inset-2 bg-yellow-500/20 rounded-full blur opacity-0 group-hover:opacity-100 transition duration-300">
+                    </div>
+                    <svg class="w-6 h-6 text-gray-300 group-hover:text-yellow-400 transition-colors relative"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span id="cart-count"
+                        class="absolute -top-1 -right-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-gray-900 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-lg border border-gray-900 transform group-hover:scale-110 transition-transform">{{
+                        cart_count }}</span>
+                </a>
+                {% if current_user.is_authenticated %}
+                <div class="relative group">
+                    <button class="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors">
+                        <div
+                            class="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center">
+                            <span class="font-bold text-yellow-500">{{ current_user.email[0].upper() }}</span>
+                        </div>
+                    </button>
+                    <div
+                        class="absolute right-0 mt-4 w-48 bg-gray-800 border border-gray-700 rounded-xl shadow-xl py-2 hidden group-hover:block">
+                        <div class="px-4 py-2 border-b border-gray-700 mb-2">
+                            <p class="text-sm text-gray-400 truncate">Signed in as</p>
+                            <p class="text-sm font-bold text-gray-100 truncate">{{ current_user.email }}</p>
+                        </div>
+                        {% if current_user.is_admin %}
+                        <a href="{{ url_for('admin.dashboard') }}"
+                            class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">Admin
+                            Dashboard</a>
+                        {% endif %}
+                        <a href="{{ url_for('auth.logout') }}"
+                            class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">Sign
+                            Out</a>
+                    </div>
+                </div>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}"
+                    class="text-sm font-bold text-gray-300 hover:text-yellow-500 transition-colors">Log In</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex space-x-8 py-3 text-sm font-medium overflow-x-auto border-t border-gray-800/50">
+            <a href="{{ url_for('main.index') }}"
+                class="text-gray-400 hover:text-gray-200 whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-gray-600 transition-all">Home</a>
+            <a href="{{ url_for('main.products') }}"
+                class="text-yellow-500 whitespace-nowrap border-b-2 border-yellow-500 pb-2">Products</a>
+            <a href="{{ url_for('main.sets') }}"
+                class="text-gray-400 hover:text-gray-200 whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-gray-600 transition-all">All
+                Sets</a>
+            <a href="{{ url_for('binder.binders_landing') }}"
+                class="text-gray-400 hover:text-gray-200 whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-gray-600 transition-all">Binders</a>
+            <a href="{{ url_for('main.support') }}"
+                class="text-gray-400 hover:text-gray-200 whitespace-nowrap pb-2 border-b-2 border-transparent hover:border-gray-600 transition-all">Support</a>
+        </nav>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="bg-gray-900 min-h-screen">
+    <!-- Page Hero -->
+    <div class="relative bg-gradient-to-b from-gray-800/50 to-gray-900 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="flex items-end justify-between">
+                <div>
+                    <nav class="flex items-center text-sm text-gray-500 mb-3">
+                        <a href="{{ url_for('main.index') }}" class="hover:text-yellow-500 transition-colors">Home</a>
+                        <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span class="text-gray-300">Products</span>
+                    </nav>
+                    <h1 class="text-4xl font-bold text-white font-display">
+                        {% if request.args.get('q') %}
+                        Search: "<span class="text-yellow-500">{{ request.args.get('q') }}</span>"
+                        {% elif request.args.get('category') %}
+                        {{ categories|selectattr('slug', 'equalto',
+                        request.args.get('category'))|map(attribute='name')|first or 'Products' }}
+                        {% else %}
+                        All Products
+                        {% endif %}
+                    </h1>
+                </div>
+                <span
+                    class="text-gray-400 text-sm font-medium bg-gray-800 px-4 py-2 rounded-full border border-gray-700">{{
+                    products.total }} results</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="flex gap-8">
+            <!-- Sidebar Filters -->
+            <aside class="w-64 flex-shrink-0 hidden lg:block">
+                <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-6 sticky top-28 backdrop-blur-sm">
+                    <h3 class="text-sm font-bold text-yellow-500 uppercase tracking-wider mb-5">Categories</h3>
+                    <ul class="space-y-1">
+                        <li>
+                            <a href="{{ url_for('main.products') }}"
+                                class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {% if not request.args.get('category') %}bg-yellow-500/10 text-yellow-400 border border-yellow-500/30{% else %}text-gray-400 hover:text-gray-200 hover:bg-gray-700/50{% endif %}">
+                                <svg class="w-4 h-4 mr-3 flex-shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                                </svg>
+                                All Products
+                            </a>
+                        </li>
+                        {% for cat in categories %}
+                        <li>
+                            <a href="{{ url_for('main.products', category=cat.slug) }}"
+                                class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {% if request.args.get('category') == cat.slug %}bg-yellow-500/10 text-yellow-400 border border-yellow-500/30{% else %}text-gray-400 hover:text-gray-200 hover:bg-gray-700/50{% endif %}">
+                                <span class="w-2 h-2 rounded-full bg-yellow-500/50 mr-3 flex-shrink-0"></span>
+                                {{ cat.name }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Products Grid -->
+            <div class="flex-1">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                    {% for product in products.items %}
+                    <div class="group relative bg-gray-800 rounded-xl border border-gray-700 overflow-hidden hover:border-yellow-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-yellow-500/10 hover:-translate-y-1 product-card"
+                        data-product-id="{{ product.id }}">
+
+                        <!-- Card Image -->
+                        <a href="{{ url_for('main.product_detail', slug=product.slug) }}"
+                            class="block relative aspect-[3/4] bg-gray-900/50 p-4 cursor-pointer">
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}"
+                                class="w-full h-full object-contain drop-shadow-2xl transition-transform duration-500 group-hover:scale-110"
+                                loading="lazy">
+                            {% if product.is_foil %}
+                            <div
+                                class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+                            </div>
+                            <span
+                                class="absolute top-2 right-2 px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-yellow-600 text-gray-900 text-[10px] font-black uppercase tracking-wider rounded shadow-lg">FOIL</span>
+                            {% endif %}
+                        </a>
+
+                        <!-- Product Info -->
+                        <div class="p-4">
+                            <a href="{{ url_for('main.product_detail', slug=product.slug) }}">
+                                <h3
+                                    class="text-sm font-bold text-gray-100 mb-1 truncate group-hover:text-yellow-500 transition-colors cursor-pointer">
+                                    {{ product.name }}</h3>
+                            </a>
+                            <p class="text-xs text-gray-500 mb-3 truncate">{{ product.set_name }} · {{ product.rarity or
+                                'C' }}</p>
+
+                            <!-- Condition Toggles -->
+                            <div class="flex flex-wrap gap-1.5 mb-3 condition-toggles">
+                                {% for stock in product.stocks %}
+                                <button
+                                    class="condition-btn px-2 py-1 text-[10px] font-bold rounded border {% if loop.first %}bg-gray-700 border-gray-600 text-white{% else %}bg-transparent border-gray-700 text-gray-500 hover:border-gray-500{% endif %} transition-all"
+                                    data-condition="{{ stock.condition }}" data-price="{{ stock.price }}"
+                                    data-stock="{{ stock.quantity }}" data-stock-id="{{ stock.id }}">
+                                    {{ stock.condition }}
+                                </button>
+                                {% else %}
+                                <span class="text-xs text-gray-600 italic">Out of Stock</span>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Action -->
+                            <button
+                                class="w-full mt-2 py-2.5 bg-gray-700 hover:bg-yellow-500 text-white hover:text-gray-900 font-bold text-sm rounded-lg transition-all duration-300 flex justify-between items-center px-4 group/btn add-to-cart-btn"
+                                data-product-id="{{ product.id }}"
+                                data-stock-id="{{ product.stocks[0].id if product.stocks else '' }}" {% if not
+                                product.stocks %}disabled{% endif %}>
+                                <span class="price-display text-base">${{ "%.2f"|format(product.min_price or 0)
+                                    }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-normal opacity-60 stock-display">[{{
+                                        product.total_quantity }}]</span>
+                                    <svg class="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-span-full py-20 text-center">
+                        <div
+                            class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800 text-gray-600 mb-4">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2 font-display">No Cards Found</h3>
+                        <p class="text-gray-500">Try adjusting your search or category filters.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if products.pages > 1 %}
+                <div class="mt-12 flex justify-center items-center gap-2">
+                    {% if products.has_prev %}
+                    <a href="{{ url_for('main.products', page=products.prev_num, category=request.args.get('category'), q=request.args.get('q')) }}"
+                        class="px-4 py-2 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white transition-all text-sm font-medium">
+                        ← Prev
+                    </a>
+                    {% endif %}
+
+                    {% for page_num in products.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2)
+                    %}
+                    {% if page_num %}
+                    <a href="{{ url_for('main.products', page=page_num, category=request.args.get('category'), q=request.args.get('q')) }}"
+                        class="w-10 h-10 flex items-center justify-center rounded-lg text-sm font-medium transition-all {% if page_num == products.page %}bg-yellow-500 text-gray-900 font-bold shadow-lg shadow-yellow-500/20{% else %}bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white{% endif %}">
+                        {{ page_num }}
+                    </a>
+                    {% else %}
+                    <span class="px-2 text-gray-600">···</span>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if products.has_next %}
+                    <a href="{{ url_for('main.products', page=products.next_num, category=request.args.get('category'), q=request.args.get('q')) }}"
+                        class="px-4 py-2 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white transition-all text-sm font-medium">
+                        Next →
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-900 border-t border-gray-800 py-12">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <a href="{{ url_for('main.index') }}" class="inline-block mb-6">
+            <span class="text-2xl font-bold text-gray-100 font-display">CardNoble</span>
+        </a>
+        <div class="flex justify-center space-x-6 mb-8 text-gray-400">
+            <a href="{{ url_for('main.products') }}" class="hover:text-yellow-500 transition-colors">Products</a>
+            <a href="{{ url_for('main.sets') }}" class="hover:text-yellow-500 transition-colors">All Sets</a>
+            <a href="{{ url_for('binder.binders_landing') }}" class="hover:text-yellow-500 transition-colors">Binders</a>
+            <a href="{{ url_for('main.support') }}" class="hover:text-yellow-500 transition-colors">Support</a>
+        </div>
+        <p class="text-gray-600 text-sm">© 2024 CardNoble Marketplace. All rights reserved.</p>
+    </div>
+</footer>
+
+{% block scripts %}
+<script>
+    // Condition toggle functionality
+    document.querySelectorAll('.product-card').forEach(card => {
+        const toggles = card.querySelectorAll('.condition-btn');
+        const priceDisplay = card.querySelector('.price-display');
+        const stockDisplay = card.querySelector('.stock-display');
+        const addBtn = card.querySelector('.add-to-cart-btn');
+
+        toggles.forEach(toggle => {
+            toggle.addEventListener('click', function (e) {
+                e.preventDefault();
+                toggles.forEach(t => {
+                    t.classList.remove('bg-gray-700', 'border-gray-600', 'text-white');
+                    t.classList.add('bg-transparent', 'border-gray-700', 'text-gray-500');
+                });
+                this.classList.remove('bg-transparent', 'border-gray-700', 'text-gray-500');
+                this.classList.add('bg-gray-700', 'border-gray-600', 'text-white');
+
+                const price = this.dataset.price;
+                const stock = this.dataset.stock;
+                const stockId = this.dataset.stockId;
+
+                if (price) priceDisplay.textContent = `$${parseFloat(price).toFixed(2)}`;
+                if (stock) stockDisplay.textContent = `[${stock}]`;
+                if (stockId) {
+                    addBtn.dataset.stockId = stockId;
+                    addBtn.disabled = false;
+                }
+            });
+        });
+    });
+
+    // Add to cart
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', async function (e) {
+            e.preventDefault();
+            if (this.disabled) return;
+
+            const productId = this.dataset.productId;
+            const stockId = this.dataset.stockId;
+
+            try {
+                const originalContent = this.innerHTML;
+                this.innerHTML = `<svg class="animate-spin w-5 h-5 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+
+                const response = await fetch('/api/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: productId, stock_id: stockId, quantity: 1 })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('cart-count').textContent = data.cart_count;
+                    this.classList.remove('bg-gray-700', 'text-white');
+                    this.classList.add('bg-green-600', 'text-white');
+                    this.innerHTML = `✓ Added`;
+                    setTimeout(() => {
+                        this.classList.remove('bg-green-600');
+                        this.classList.add('bg-gray-700');
+                        this.innerHTML = originalContent;
+                    }, 1500);
+                } else {
+                    this.innerHTML = originalContent;
+                    alert(data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                this.innerHTML = originalContent;
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

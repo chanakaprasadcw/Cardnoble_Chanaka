@@ -1,0 +1,1435 @@
+{% extends "base.html" %}
+{% block title %}{{ binder.name }} - Binder Editor - CardNoble{% endblock %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cinzel:wght@400;700;900&display=swap');
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background: #111;
+        color: #e2e8f0;
+        overflow: hidden;
+    }
+
+    /* ── Top Bar ─────────────────────────────────────── */
+    .editor-topbar {
+        height: 48px;
+        background: #1a1a1a;
+        border-bottom: 1px solid #2a2a2a;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+    }
+
+    .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .topbar-left .back-btn {
+        color: #888;
+        text-decoration: none;
+        font-size: 1rem;
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+    }
+
+    .topbar-left .back-btn:hover {
+        color: #fff;
+    }
+
+    .binder-title-input {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #f1f5f9;
+        background: none;
+        border: none;
+        outline: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: background 0.2s;
+        min-width: 200px;
+    }
+
+    .binder-title-input:hover,
+    .binder-title-input:focus {
+        background: #252525;
+    }
+
+    .topbar-center {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .top-btn {
+        padding: 5px 12px;
+        border-radius: 6px;
+        border: 1px solid #333;
+        background: #222;
+        color: #aaa;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .top-btn:hover {
+        border-color: #6366f1;
+        color: #fff;
+    }
+
+    .top-btn.primary {
+        background: #6366f1;
+        border-color: #6366f1;
+        color: #fff;
+    }
+
+    .top-btn.primary:hover {
+        background: #5254cc;
+    }
+
+    /* ── Page Nav ─────────────────────────────────── */
+    .page-nav {
+        height: 36px;
+        background: #1a1a1a;
+        border-bottom: 1px solid #222;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        font-size: 0.8rem;
+    }
+
+    .page-nav-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: 1px solid #333;
+        background: #222;
+        color: #888;
+        font-size: 0.8rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+    }
+
+    .page-nav-btn:hover {
+        border-color: #6366f1;
+        color: #fff;
+    }
+
+    .page-nav-btn:disabled {
+        opacity: 0.3;
+        cursor: default;
+    }
+
+    .page-info {
+        color: #888;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .page-label-input {
+        background: none;
+        border: none;
+        border-bottom: 1px dashed #444;
+        color: #aaa;
+        font-size: 0.75rem;
+        font-style: italic;
+        padding: 2px 6px;
+        outline: none;
+        min-width: 120px;
+        text-align: center;
+        transition: all 0.2s;
+    }
+
+    .page-label-input:focus {
+        border-color: #6366f1;
+        color: #fff;
+    }
+
+    .page-label-input::placeholder {
+        color: #555;
+    }
+
+    /* ── Main Layout ─────────────────────────────────── */
+    .editor-layout {
+        display: flex;
+        height: calc(100vh - 84px);
+    }
+
+    .grid-area {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #111;
+        position: relative;
+        overflow: auto;
+        padding: 16px;
+    }
+
+    .binder-grid-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .binder-grid {
+        display: grid;
+        gap: 6px;
+        padding: 16px;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+    }
+
+    /* ── Card Slots ──────────────────────────────────── */
+    .card-slot {
+        background: #222;
+        border: 2px dashed #333;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 5/7;
+    }
+
+    .card-slot:hover {
+        border-color: #555;
+        background: #252525;
+    }
+
+    .card-slot.empty .slot-num {
+        font-size: 0.7rem;
+        color: #333;
+        font-weight: 700;
+    }
+
+    .card-slot.filled {
+        border: 2px solid #2a2a2a;
+        cursor: grab;
+        padding: 0;
+    }
+
+    .card-slot.filled:hover {
+        border-color: #6366f1;
+        z-index: 5;
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .card-slot.filled img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 6px;
+        display: block;
+    }
+
+    .card-slot.filled.uncollected img {
+        filter: brightness(0.3) grayscale(0.7);
+    }
+
+    /* ── Per-card Edit Buttons ────────── */
+    .card-edit-btns {
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        opacity: 0;
+        transition: opacity 0.15s;
+        z-index: 10;
+    }
+
+    .card-slot.filled:hover .card-edit-btns {
+        opacity: 1;
+    }
+
+    .card-edit-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.15s;
+        backdrop-filter: blur(4px);
+    }
+
+    .card-edit-btn.view-btn {
+        background: rgba(99, 102, 241, 0.85);
+        color: #fff;
+    }
+
+    .card-edit-btn.view-btn:hover {
+        background: #6366f1;
+        transform: scale(1.1);
+    }
+
+    .card-edit-btn.collect-btn {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+    }
+
+    .card-edit-btn.collect-btn.collected {
+        background: rgba(16, 185, 129, 0.85);
+        color: #fff;
+    }
+
+    .card-edit-btn.collect-btn:hover {
+        background: rgba(16, 185, 129, 0.7);
+        transform: scale(1.1);
+    }
+
+    .card-edit-btn.delete-btn {
+        background: rgba(239, 68, 68, 0.75);
+        color: #fff;
+    }
+
+    .card-edit-btn.delete-btn:hover {
+        background: #ef4444;
+        transform: scale(1.1);
+    }
+
+    /* ── Card Bottom Info ───────────────── */
+    .card-bottom-info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+        padding: 20px 8px 6px;
+        opacity: 0;
+        transition: opacity 0.15s;
+        border-radius: 0 0 6px 6px;
+    }
+
+    .card-slot.filled:hover .card-bottom-info {
+        opacity: 1;
+    }
+
+    .card-bottom-name {
+        font-size: 0.6rem;
+        font-weight: 600;
+        color: #f1f5f9;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Drag states */
+    .card-slot.drag-over {
+        border-color: #f59e0b !important;
+        background: rgba(245, 158, 11, 0.08) !important;
+        box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.1);
+    }
+
+    .card-slot.dragging {
+        opacity: 0.25;
+    }
+
+    /* ── Right Sidebar ───────────────────────────────── */
+    .sidebar {
+        width: 240px;
+        background: #1a1a1a;
+        border-left: 1px solid #222;
+        padding: 16px 14px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .sb-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #555;
+        margin-bottom: 8px;
+    }
+
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        padding: 3px 0;
+    }
+
+    .stat-key {
+        color: #888;
+    }
+
+    .stat-val {
+        color: #f1f5f9;
+        font-weight: 600;
+    }
+
+    .progress-bg {
+        height: 6px;
+        background: #252525;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 4px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6366f1, #a78bfa);
+        border-radius: 3px;
+        transition: width 0.4s ease;
+    }
+
+    .progress-label {
+        font-size: 0.7rem;
+        color: #555;
+        text-align: right;
+    }
+
+    .grid-btns {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+
+    .grid-btn {
+        padding: 5px 10px;
+        border-radius: 6px;
+        border: 1px solid #333;
+        background: #222;
+        color: #888;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .grid-btn:hover {
+        border-color: #6366f1;
+        color: #fff;
+    }
+
+    .grid-btn.active {
+        background: #6366f1;
+        border-color: #6366f1;
+        color: #fff;
+    }
+
+    .toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 2px 0;
+    }
+
+    .toggle-lbl {
+        font-size: 0.75rem;
+        color: #888;
+    }
+
+    .toggle-sw {
+        width: 34px;
+        height: 18px;
+        background: #333;
+        border-radius: 9px;
+        cursor: pointer;
+        position: relative;
+        transition: background 0.2s;
+    }
+
+    .toggle-sw.on {
+        background: #6366f1;
+    }
+
+    .toggle-sw::after {
+        content: '';
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        background: #fff;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.2s;
+    }
+
+    .toggle-sw.on::after {
+        transform: translateX(16px);
+    }
+
+    .sb-action-btn {
+        width: 100%;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #333;
+        background: #222;
+        color: #aaa;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .sb-action-btn:hover {
+        border-color: #6366f1;
+        color: #fff;
+    }
+
+    .sb-action-btn.add-btn {
+        background: #6366f1;
+        border-color: #6366f1;
+        color: #fff;
+    }
+
+    .sb-action-btn.add-btn:hover {
+        background: #5254cc;
+    }
+
+    /* ── View Card Modal ──────────────────────────────── */
+    .view-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 200;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .view-modal-overlay.active {
+        display: flex;
+    }
+
+    .view-modal-card {
+        max-width: 380px;
+        max-height: 85vh;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+        cursor: default;
+    }
+
+    .view-modal-card img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    /* ── Add Cards Modal ─────────────────────────────── */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .card-search-modal {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 960px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-header {
+        padding: 14px 20px;
+        border-bottom: 1px solid #252525;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .modal-header h2 {
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .modal-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid #333;
+        background: #222;
+        color: #888;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+        color: #ef4444;
+        border-color: #ef4444;
+    }
+
+    /* ── Modal Tabs ───────────────────────────────────── */
+    .modal-tabs {
+        display: flex;
+        border-bottom: 1px solid #252525;
+        padding: 0 20px;
+    }
+
+    .modal-tab {
+        padding: 10px 16px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #555;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+        background: none;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+    }
+
+    .modal-tab:hover {
+        color: #aaa;
+    }
+
+    .modal-tab.active {
+        color: #6366f1;
+        border-bottom-color: #6366f1;
+    }
+
+    .tab-content {
+        display: none;
+        flex: 1;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .tab-content.active {
+        display: flex;
+    }
+
+    .search-bar {
+        padding: 12px 20px;
+        border-bottom: 1px solid #252525;
+        display: flex;
+        gap: 8px;
+    }
+
+    .search-bar input {
+        flex: 1;
+        padding: 8px 14px;
+        background: #111;
+        border: 1px solid #333;
+        border-radius: 8px;
+        color: #e2e8f0;
+        font-size: 0.9rem;
+        outline: none;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .search-bar input:focus {
+        border-color: #6366f1;
+    }
+
+    .search-bar select {
+        padding: 8px 10px;
+        background: #111;
+        border: 1px solid #333;
+        border-radius: 8px;
+        color: #e2e8f0;
+        font-size: 0.8rem;
+        outline: none;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .search-results {
+        flex: 1;
+        overflow-y: auto;
+        padding: 14px 20px;
+    }
+
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 8px;
+    }
+
+    .result-card {
+        cursor: pointer;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+        position: relative;
+        background: #222;
+    }
+
+    .result-card:hover {
+        border-color: #6366f1;
+        transform: translateY(-2px);
+    }
+
+    .result-card.selected {
+        border-color: #f59e0b;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+    }
+
+    .result-card.selected::after {
+        content: '✓';
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #f59e0b;
+        color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        font-weight: 800;
+    }
+
+    .result-card img {
+        width: 100%;
+        aspect-ratio: 5/7;
+        object-fit: cover;
+    }
+
+    .result-card .no-img {
+        width: 100%;
+        aspect-ratio: 5/7;
+        background: #252525;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.6rem;
+        color: #555;
+        text-align: center;
+        padding: 6px;
+    }
+
+    .result-card .r-name {
+        padding: 4px 6px;
+        font-size: 0.6rem;
+        color: #888;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .result-card .r-set {
+        padding: 0 6px 4px;
+        font-size: 0.5rem;
+        color: #555;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .modal-footer {
+        padding: 12px 20px;
+        border-top: 1px solid #252525;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .sel-count {
+        font-size: 0.8rem;
+        color: #888;
+    }
+
+    .sel-count strong {
+        color: #f59e0b;
+    }
+
+    .btn-add-selected {
+        padding: 8px 20px;
+        background: #6366f1;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-add-selected:hover {
+        background: #5254cc;
+    }
+
+    .btn-add-selected:disabled {
+        opacity: 0.3;
+        cursor: default;
+    }
+
+    .search-status {
+        text-align: center;
+        padding: 40px;
+        color: #555;
+        font-size: 0.85rem;
+    }
+
+    .load-more-btn {
+        display: block;
+        margin: 12px auto 0;
+        padding: 6px 20px;
+        background: #222;
+        border: 1px solid #333;
+        border-radius: 6px;
+        color: #888;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+    }
+
+    .load-more-btn:hover {
+        border-color: #6366f1;
+        color: #fff;
+    }
+
+    /* ── Source badges ────────────────────────────────── */
+    .source-badge {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        z-index: 2;
+    }
+
+    .source-badge.scryfall {
+        background: #f59e0b;
+        color: #000;
+    }
+
+    .source-badge.pokemon {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    .source-badge.yugioh {
+        background: #8b5cf6;
+        color: #fff;
+    }
+</style>
+
+<!-- Top Bar -->
+<div class="editor-topbar">
+    <div class="topbar-left">
+        <a href="{{ url_for('binder.binders_landing') }}" class="back-btn" title="Back">←</a>
+        <input type="text" class="binder-title-input" id="binderTitle" value="{{ binder.name }}"
+            onchange="updateSettings()">
+    </div>
+    <div class="topbar-center">
+        <span style="font-size:0.75rem;color:#555;" id="cardCountLabel">{{ binder.card_count }} cards</span>
+    </div>
+    <div class="topbar-right">
+        <button class="top-btn" onclick="toggleDimUncollected()">◐ Dim</button>
+        <button class="top-btn primary" onclick="openSearchModal()">+ Add Cards</button>
+        <button class="top-btn" onclick="window.location.href='{{ url_for('binder.binders_landing') }}'">←
+            Dashboard</button>
+    </div>
+</div>
+
+<!-- Page Navigation -->
+<div class="page-nav">
+    <button class="page-nav-btn" id="prevPageBtn" onclick="prevPage()" disabled>‹</button>
+    <span class="page-info" id="pageInfo">1 / 1</span>
+    <button class="page-nav-btn" id="nextPageBtn" onclick="nextPage()">›</button>
+    <span style="color:#444;margin:0 4px;">»</span>
+    <input type="text" class="page-label-input" id="pageLabelInput" placeholder="Click to add page label"
+        onchange="savePageLabel()">
+</div>
+
+<!-- Editor Layout -->
+<div class="editor-layout">
+    <div class="grid-area">
+        <div class="binder-grid-wrapper">
+            <div class="binder-grid" id="binderGrid"></div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="sidebar">
+        <div class="sb-section">
+            <div class="sb-label">Progress</div>
+            <div class="progress-bg">
+                <div class="progress-fill" id="progressFill" style="width:0%"></div>
+            </div>
+            <div class="progress-label" id="progressText">0/0 (0%)</div>
+        </div>
+        <div class="sb-section">
+            <div class="sb-label">Stats</div>
+            <div class="stat-row"><span class="stat-key">Total</span><span class="stat-val" id="statTotal">0</span>
+            </div>
+            <div class="stat-row"><span class="stat-key">Collected</span><span class="stat-val"
+                    id="statCollected">0</span></div>
+            <div class="stat-row"><span class="stat-key">Missing</span><span class="stat-val" id="statMissing">0</span>
+            </div>
+        </div>
+        <div class="sb-section">
+            <div class="sb-label">Grid</div>
+            <div class="grid-btns">
+                <button class="grid-btn {{ 'active' if binder.grid_size == '2x2' }}"
+                    onclick="changeGridSize('2x2',this)">2×2</button>
+                <button class="grid-btn {{ 'active' if binder.grid_size == '3x3' }}"
+                    onclick="changeGridSize('3x3',this)">3×3</button>
+                <button class="grid-btn {{ 'active' if binder.grid_size == '4x3' }}"
+                    onclick="changeGridSize('4x3',this)">4×3</button>
+                <button class="grid-btn {{ 'active' if binder.grid_size == '4x4' }}"
+                    onclick="changeGridSize('4x4',this)">4×4</button>
+            </div>
+        </div>
+        <div class="sb-section">
+            <div class="sb-label">Display</div>
+            <div class="toggle-row">
+                <span class="toggle-lbl">Dim uncollected</span>
+                <div class="toggle-sw" id="toggleDim" onclick="toggleDimUncollected()"></div>
+            </div>
+        </div>
+        <div class="sb-section" style="margin-top:auto;">
+            <button class="sb-action-btn add-btn" onclick="openSearchModal()">+ Add Cards</button>
+            <button class="sb-action-btn" style="margin-top:6px;"
+                onclick="window.location.href='{{ url_for('binder.binders_landing') }}'">← Back to Dashboard</button>
+        </div>
+    </div>
+</div>
+
+<!-- View Card Modal -->
+<div class="view-modal-overlay" id="viewModal" onclick="closeViewModal()">
+    <div class="view-modal-card" onclick="event.stopPropagation()">
+        <img id="viewModalImg" src="" alt="">
+    </div>
+</div>
+
+<!-- Add Cards Modal (Tabbed: My Store + Import from Web) -->
+<div class="modal-overlay" id="searchModal">
+    <div class="card-search-modal">
+        <div class="modal-header">
+            <h2>Add Cards</h2>
+            <button class="modal-close" onclick="closeSearchModal()">✕</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="modal-tabs">
+            <button class="modal-tab active" id="tabStore" onclick="switchTab('store')">📦 My Store</button>
+            <button class="modal-tab" id="tabImport" onclick="switchTab('import')">🌐 Import from Web</button>
+        </div>
+
+        <!-- Tab: My Store -->
+        <div class="tab-content active" id="tabStoreContent">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search your store products..."
+                    oninput="debounceSearch()">
+                <select id="searchCategory" onchange="searchProducts()">
+                    <option value="">All</option>
+                    <option value="mtg">MTG</option>
+                    <option value="pokemon">Pokémon</option>
+                    <option value="yugioh">Yu-Gi-Oh!</option>
+                    <option value="fab">Flesh & Blood</option>
+                    <option value="onepiece">One Piece</option>
+                    <option value="lorcana">Lorcana</option>
+                </select>
+            </div>
+            <div class="search-results" id="searchResults">
+                <div class="search-status">Search for cards to add to your binder</div>
+            </div>
+            <div class="modal-footer">
+                <div class="sel-count"><strong id="selectedNum">0</strong> selected</div>
+                <button class="btn-add-selected" id="btnAddSelected" disabled onclick="addSelectedCards()">Add to
+                    Binder</button>
+            </div>
+        </div>
+
+        <!-- Tab: Import from Web -->
+        <div class="tab-content" id="tabImportContent">
+            <div class="search-bar">
+                <input type="text" id="extSearchInput"
+                    placeholder="Search cards online (e.g. Charizard, Black Lotus)..." oninput="debounceExtSearch()">
+                <select id="extSource" onchange="externalSearch()">
+                    <option value="scryfall">🃏 MTG (Scryfall)</option>
+                    <option value="pokemon">⚡ Pokémon TCG</option>
+                    <option value="yugioh">🏆 Yu-Gi-Oh!</option>
+                </select>
+            </div>
+            <div class="search-results" id="extSearchResults">
+                <div class="search-status">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🌐</div>
+                    Search any card from Scryfall, Pokémon TCG, or YGOPro databases.<br>
+                    <span style="font-size: 0.75rem; color: #444;">Cards will be imported into your catalog
+                        automatically.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="sel-count"><strong id="extSelectedNum">0</strong> selected</div>
+                <button class="btn-add-selected" id="btnImportSelected" disabled onclick="importSelectedCards()">Import
+                    & Add to Binder</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BINDER_ID = {{ binder.id }};
+    let gridSize = '{{ binder.grid_size }}';
+    let cards = [];
+    let dimUncollected = false;
+    let currentPage = 0;
+    let totalPages = 1;
+    let pageLabels = {};
+
+    // Store tab state
+    let selectedProducts = new Set();
+    let searchTimeout = null;
+
+    // Import tab state
+    let extSelectedCards = [];  // array of card objects from external API
+    let extSearchTimeout = null;
+
+    // ── Init ──────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function () {
+        loadCards();
+        document.getElementById('searchInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') searchProducts();
+        });
+        document.getElementById('extSearchInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') externalSearch();
+        });
+        document.getElementById('searchModal').addEventListener('click', function (e) {
+            if (e.target === this) closeSearchModal();
+        });
+    });
+
+    async function loadCards() {
+        var res = await fetch('/api/binders/' + BINDER_ID + '/cards');
+        var data = await res.json();
+        cards = data.cards;
+        gridSize = data.grid_size;
+        computePages();
+        renderGrid();
+        updateStats();
+        updatePageNav();
+    }
+
+    function slotsPerPage() {
+        var parts = gridSize.split('x');
+        return parseInt(parts[0]) * parseInt(parts[1]);
+    }
+
+    function computePages() {
+        var spp = slotsPerPage();
+        totalPages = Math.max(1, Math.ceil(cards.length / spp));
+        if (currentPage >= totalPages) currentPage = totalPages - 1;
+    }
+
+    function computeCardWidth() {
+        var parts = gridSize.split('x');
+        var cols = parseInt(parts[0]);
+        var rows = parseInt(parts[1]);
+        var area = document.querySelector('.grid-area');
+        if (!area) return 160;
+        var areaW = area.clientWidth - 64;
+        var areaH = area.clientHeight - 64;
+        var gap = 6;
+        var availW = areaW - 32 - (gap * (cols - 1));
+        var availH = areaH - 32 - (gap * (rows - 1));
+        var wFromW = Math.floor(availW / cols);
+        var wFromH = Math.floor(availH / rows * 5 / 7);
+        return Math.min(wFromW, wFromH, 220);
+    }
+
+    // ── Render Grid ──────────────────────────────────────
+    function renderGrid() {
+        var parts = gridSize.split('x');
+        var cols = parseInt(parts[0]);
+        var rows = parseInt(parts[1]);
+        var spp = cols * rows;
+        var offset = currentPage * spp;
+        var cardW = computeCardWidth();
+        var grid = document.getElementById('binderGrid');
+        grid.style.gridTemplateColumns = 'repeat(' + cols + ', ' + cardW + 'px)';
+        grid.innerHTML = '';
+
+        for (var i = 0; i < spp; i++) {
+            var pos = offset + i;
+            var card = cards.find(function (c) { return c.position === pos; });
+            var slot = document.createElement('div');
+            slot.className = 'card-slot ' + (card ? 'filled' : 'empty');
+            slot.dataset.position = pos;
+            slot.style.width = cardW + 'px';
+
+            if (card) {
+                if (dimUncollected && !card.is_collected) slot.classList.add('uncollected');
+                var safeName = card.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                var imgHtml = card.image_url
+                    ? '<img src="' + card.image_url + '" alt="' + safeName + '" draggable="false">'
+                    : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#252525;color:#555;font-size:0.65rem;border-radius:6px;">' + card.name + '</div>';
+
+                slot.innerHTML = imgHtml +
+                    '<div class="card-edit-btns">' +
+                    '<button class="card-edit-btn view-btn" onclick="event.stopPropagation();viewCard(\'' + (card.image_url || '') + '\',\'' + safeName + '\')" title="View">🔍</button>' +
+                    '<button class="card-edit-btn collect-btn ' + (card.is_collected ? 'collected' : '') + '" onclick="event.stopPropagation();toggleCard(' + card.id + ')" title="' + (card.is_collected ? 'Collected' : 'Mark collected') + '">' + (card.is_collected ? '✓' : '♡') + '</button>' +
+                    '<button class="card-edit-btn delete-btn" onclick="event.stopPropagation();removeCard(' + card.id + ')" title="Remove">🗑</button>' +
+                    '</div>' +
+                    '<div class="card-bottom-info"><div class="card-bottom-name">' + card.name + '</div></div>';
+
+                slot.draggable = true;
+                (function (c, s) {
+                    s.addEventListener('dragstart', function (e) { handleDragStart(e, c, s); });
+                    s.addEventListener('dragend', function () { handleDragEnd(s); });
+                })(card, slot);
+            } else {
+                slot.innerHTML = '<span class="slot-num">' + (pos + 1) + '</span>';
+                slot.addEventListener('click', function () { openSearchModal(); });
+            }
+
+            (function (p, s) {
+                s.addEventListener('dragover', function (e) { e.preventDefault(); s.classList.add('drag-over'); });
+                s.addEventListener('dragleave', function () { s.classList.remove('drag-over'); });
+                s.addEventListener('drop', function (e) { handleDrop(e, p, s); });
+            })(pos, slot);
+            grid.appendChild(slot);
+        }
+    }
+
+    var resizeTimer;
+    window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderGrid, 100); });
+
+    // ── Drag & Drop ─────────────────────────────────────
+    var dragCard = null, dragSourcePos = null;
+    function handleDragStart(e, card, slot) { dragCard = card; dragSourcePos = card.position; slot.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
+    function handleDragEnd(slot) { slot.classList.remove('dragging'); document.querySelectorAll('.drag-over').forEach(function (el) { el.classList.remove('drag-over'); }); }
+    async function handleDrop(e, targetPos, slot) {
+        e.preventDefault(); slot.classList.remove('drag-over');
+        if (!dragCard || dragSourcePos === targetPos) return;
+        var targetCard = cards.find(function (c) { return c.position === targetPos; });
+        var positions = {};
+        positions[dragCard.id] = targetPos;
+        if (targetCard) positions[targetCard.id] = dragSourcePos;
+        var res = await fetch('/api/binders/' + BINDER_ID + '/cards/reorder', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ positions: positions })
+        });
+        if (res.ok) { dragCard.position = targetPos; if (targetCard) targetCard.position = dragSourcePos; renderGrid(); }
+        dragCard = null; dragSourcePos = null;
+    }
+
+    // ── Page Navigation ─────────────────────────────────
+    function updatePageNav() {
+        document.getElementById('pageInfo').textContent = (currentPage + 1) + ' / ' + totalPages;
+        document.getElementById('prevPageBtn').disabled = currentPage === 0;
+        document.getElementById('nextPageBtn').disabled = currentPage >= totalPages - 1;
+        document.getElementById('pageLabelInput').value = pageLabels[currentPage] || '';
+    }
+    function prevPage() { if (currentPage > 0) { currentPage--; renderGrid(); updatePageNav(); } }
+    function nextPage() {
+        if (currentPage < totalPages - 1) { currentPage++; renderGrid(); updatePageNav(); }
+        else { currentPage++; totalPages = currentPage + 1; renderGrid(); updatePageNav(); }
+    }
+    function savePageLabel() { pageLabels[currentPage] = document.getElementById('pageLabelInput').value; }
+
+    // ── Card Actions ────────────────────────────────────
+    async function toggleCard(cardId) {
+        var res = await fetch('/api/binders/' + BINDER_ID + '/cards/toggle', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ card_id: cardId })
+        });
+        if (res.ok) { var d = await res.json(); var c = cards.find(function (x) { return x.id === cardId; }); if (c) c.is_collected = d.is_collected; renderGrid(); updateStats(); }
+    }
+    async function removeCard(cardId) {
+        var res = await fetch('/api/binders/' + BINDER_ID + '/cards/remove', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ card_id: cardId })
+        });
+        if (res.ok) { cards = cards.filter(function (c) { return c.id !== cardId; }); computePages(); renderGrid(); updateStats(); updatePageNav(); }
+    }
+    function viewCard(imgUrl, name) {
+        if (!imgUrl) return;
+        document.getElementById('viewModalImg').src = imgUrl;
+        document.getElementById('viewModalImg').alt = name;
+        document.getElementById('viewModal').classList.add('active');
+    }
+    function closeViewModal() { document.getElementById('viewModal').classList.remove('active'); }
+
+    // ── Stats ───────────────────────────────────────────
+    function updateStats() {
+        var total = cards.length;
+        var collected = cards.filter(function (c) { return c.is_collected; }).length;
+        var missing = total - collected;
+        var pct = total > 0 ? Math.round(collected / total * 100) : 0;
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statCollected').textContent = collected;
+        document.getElementById('statMissing').textContent = missing;
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressText').textContent = collected + '/' + total + ' (' + pct + '%)';
+        document.getElementById('cardCountLabel').textContent = total + ' cards';
+    }
+
+    // ── Settings ────────────────────────────────────────
+    async function changeGridSize(size, btn) {
+        gridSize = size;
+        document.querySelectorAll('.grid-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        computePages(); renderGrid(); updatePageNav();
+        await fetch('/api/binders/' + BINDER_ID + '/settings', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ grid_size: size })
+        });
+    }
+    async function updateSettings() {
+        var name = document.getElementById('binderTitle').value.trim();
+        if (!name) return;
+        await fetch('/api/binders/' + BINDER_ID + '/settings', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name })
+        });
+    }
+    function toggleDimUncollected() {
+        dimUncollected = !dimUncollected;
+        document.getElementById('toggleDim').classList.toggle('on', dimUncollected);
+        renderGrid();
+    }
+
+    // ── Tab Switching ───────────────────────────────────
+    function switchTab(tab) {
+        document.getElementById('tabStore').classList.toggle('active', tab === 'store');
+        document.getElementById('tabImport').classList.toggle('active', tab === 'import');
+        document.getElementById('tabStoreContent').classList.toggle('active', tab === 'store');
+        document.getElementById('tabImportContent').classList.toggle('active', tab === 'import');
+
+        if (tab === 'import') {
+            document.getElementById('extSearchInput').focus();
+        } else {
+            document.getElementById('searchInput').focus();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // TAB 1: MY STORE — existing product search
+    // ═══════════════════════════════════════════════════════
+    function openSearchModal() {
+        document.getElementById('searchModal').classList.add('active');
+        selectedProducts.clear();
+        extSelectedCards = [];
+        updateSelectedCount();
+        updateExtSelectedCount();
+        switchTab('store');
+        searchProducts();
+    }
+    function closeSearchModal() { document.getElementById('searchModal').classList.remove('active'); selectedProducts.clear(); extSelectedCards = []; }
+    function debounceSearch() { clearTimeout(searchTimeout); searchTimeout = setTimeout(function () { searchProducts(); }, 300); }
+
+    async function searchProducts(page) {
+        page = page || 1;
+        var q = document.getElementById('searchInput').value.trim();
+        var cat = document.getElementById('searchCategory').value;
+        var params = new URLSearchParams();
+        if (q) params.set('q', q);
+        if (cat) params.set('category', cat);
+        params.set('page', page);
+        var container = document.getElementById('searchResults');
+        if (page === 1) container.innerHTML = '<div class="search-status">Searching...</div>';
+
+        var res = await fetch('/api/products/search?' + params);
+        var data = await res.json();
+        if (page === 1 && data.products.length === 0) { container.innerHTML = '<div class="search-status">No cards found in your store</div>'; return; }
+        if (page === 1) container.innerHTML = '<div style="font-size:0.7rem;color:#444;margin-bottom:10px;">' + data.total + ' results</div><div class="results-grid" id="resultsGrid"></div>';
+
+        var grid = document.getElementById('resultsGrid');
+        data.products.forEach(function (p) {
+            var card = document.createElement('div');
+            card.className = 'result-card' + (selectedProducts.has(p.id) ? ' selected' : '');
+            card.dataset.productId = p.id;
+            card.innerHTML = p.image_url
+                ? '<img src="' + p.image_url + '" alt="' + p.name + '"><div class="r-name">' + p.name + '</div>'
+                : '<div class="no-img">' + p.name + '</div><div class="r-name">' + p.name + '</div>';
+            card.addEventListener('click', function () { toggleSelectProduct(p.id, card); });
+            grid.appendChild(card);
+        });
+
+        var existing = document.getElementById('loadMoreBtn');
+        if (existing) existing.remove();
+        if (data.page < data.pages) {
+            var btn = document.createElement('button');
+            btn.id = 'loadMoreBtn'; btn.className = 'load-more-btn';
+            btn.textContent = 'Load more (' + (data.page * 20) + ' of ' + data.total + ')';
+            btn.onclick = function () { searchProducts(page + 1); };
+            container.appendChild(btn);
+        }
+    }
+    function toggleSelectProduct(productId, el) {
+        if (selectedProducts.has(productId)) { selectedProducts.delete(productId); el.classList.remove('selected'); }
+        else { selectedProducts.add(productId); el.classList.add('selected'); }
+        updateSelectedCount();
+    }
+    function updateSelectedCount() {
+        var n = selectedProducts.size;
+        document.getElementById('selectedNum').textContent = n;
+        document.getElementById('btnAddSelected').disabled = n === 0;
+    }
+    async function addSelectedCards() {
+        var ids = Array.from(selectedProducts);
+        var res = await fetch('/api/binders/' + BINDER_ID + '/cards/add', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_ids: ids })
+        });
+        if (res.ok) { closeSearchModal(); await loadCards(); }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // TAB 2: IMPORT FROM WEB — external API search
+    // ═══════════════════════════════════════════════════════
+    function debounceExtSearch() { clearTimeout(extSearchTimeout); extSearchTimeout = setTimeout(function () { externalSearch(); }, 500); }
+
+    async function externalSearch(page) {
+        page = page || 1;
+        var q = document.getElementById('extSearchInput').value.trim();
+        var source = document.getElementById('extSource').value;
+        var container = document.getElementById('extSearchResults');
+        if (!q) { container.innerHTML = '<div class="search-status"><div style="font-size:1.5rem;margin-bottom:8px;">🌐</div>Search any card from Scryfall, Pokémon TCG, or YGOPro databases.</div>'; return; }
+
+        if (page === 1) container.innerHTML = '<div class="search-status">🔍 Searching ' + source + '...</div>';
+
+        var params = new URLSearchParams();
+        params.set('q', q);
+        params.set('source', source);
+        params.set('page', page);
+
+        try {
+            var res = await fetch('/api/external/search?' + params);
+            var data = await res.json();
+
+            if (data.error) { container.innerHTML = '<div class="search-status">⚠️ ' + data.error + '</div>'; return; }
+            if (page === 1 && data.cards.length === 0) { container.innerHTML = '<div class="search-status">No cards found on ' + source + '</div>'; return; }
+
+            if (page === 1) {
+                container.innerHTML = '<div style="font-size:0.7rem;color:#444;margin-bottom:10px;">' + data.total + ' results from <strong style="color:#6366f1;">' + source + '</strong></div><div class="results-grid" id="extResultsGrid"></div>';
+            }
+
+            var grid = document.getElementById('extResultsGrid');
+            data.cards.forEach(function (c) {
+                var isSelected = extSelectedCards.some(function (s) { return s.external_id === c.external_id; });
+                var card = document.createElement('div');
+                card.className = 'result-card' + (isSelected ? ' selected' : '');
+                card.dataset.extId = c.external_id;
+
+                var badgeClass = c.source === 'scryfall' ? 'scryfall' : (c.source === 'pokemon' ? 'pokemon' : 'yugioh');
+
+                card.innerHTML = (c.image_url
+                    ? '<img src="' + c.image_url + '" alt="' + c.name + '">'
+                    : '<div class="no-img">' + c.name + '</div>') +
+                    '<span class="source-badge ' + badgeClass + '">' + c.source + '</span>' +
+                    '<div class="r-name">' + c.name + '</div>' +
+                    (c.set_name ? '<div class="r-set">' + c.set_name + '</div>' : '');
+
+                (function (cardData, cardEl) {
+                    cardEl.addEventListener('click', function () { toggleExtSelect(cardData, cardEl); });
+                })(c, card);
+                grid.appendChild(card);
+            });
+
+            // Load more button
+            var existingBtn = document.getElementById('extLoadMoreBtn');
+            if (existingBtn) existingBtn.remove();
+            if (data.has_more) {
+                var btn = document.createElement('button');
+                btn.id = 'extLoadMoreBtn'; btn.className = 'load-more-btn';
+                btn.textContent = 'Load more results';
+                btn.onclick = function () { externalSearch(page + 1); };
+                container.appendChild(btn);
+            }
+        } catch (err) {
+            container.innerHTML = '<div class="search-status">⚠️ Search failed: ' + err.message + '</div>';
+        }
+    }
+
+    function toggleExtSelect(cardData, el) {
+        var idx = extSelectedCards.findIndex(function (s) { return s.external_id === cardData.external_id; });
+        if (idx >= 0) { extSelectedCards.splice(idx, 1); el.classList.remove('selected'); }
+        else { extSelectedCards.push(cardData); el.classList.add('selected'); }
+        updateExtSelectedCount();
+    }
+    function updateExtSelectedCount() {
+        var n = extSelectedCards.length;
+        document.getElementById('extSelectedNum').textContent = n;
+        document.getElementById('btnImportSelected').disabled = n === 0;
+    }
+
+    async function importSelectedCards() {
+        if (extSelectedCards.length === 0) return;
+        var btn = document.getElementById('btnImportSelected');
+        btn.disabled = true;
+        btn.textContent = 'Importing...';
+
+        try {
+            var res = await fetch('/api/external/import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cards: extSelectedCards, binder_id: BINDER_ID })
+            });
+            if (res.ok) {
+                var data = await res.json();
+                closeSearchModal();
+                await loadCards();
+            } else {
+                btn.textContent = 'Import failed — retry';
+                btn.disabled = false;
+            }
+        } catch (err) {
+            btn.textContent = 'Import failed — retry';
+            btn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

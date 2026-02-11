@@ -1,0 +1,24 @@
+<!-- Top Bar -->
+<header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
+    <h1 class="text-xl font-semibold text-gray-900">
+        <%= typeof title !=='undefined' ? title : 'Dashboard' %>
+    </h1>
+    <div class="flex items-center space-x-4">
+        <span class="text-sm text-gray-600">
+            <%= locals.currentUser ? currentUser.email : 'Admin' %>
+        </span>
+    </div>
+</header>
+
+<!-- Page Content -->
+<div class="p-6">
+    <% if (locals.error && error.length> 0) { %>
+        <div class="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
+            <%= error %>
+        </div>
+        <% } %>
+            <% if (locals.success && success.length> 0) { %>
+                <div class="bg-green-100 text-green-700 p-4 rounded-lg mb-6">
+                    <%= success %>
+                </div>
+                <% } %>

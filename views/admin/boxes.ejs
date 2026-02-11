@@ -1,0 +1,133 @@
+<%- include('../partials/admin_layout_start', { title: 'Boxes' }) %>
+    <%- include('../partials/admin_header', { title: 'Boxes' }) %>
+
+        <div class="space-y-6">
+            <!-- Header -->
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-900">Product Boxes / Bundles</h2>
+                <button onclick="document.getElementById('createModal').classList.remove('hidden')"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                    + Add Box
+                </button>
+            </div>
+
+            <!-- Boxes Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <% if (boxes.length> 0) { %>
+                    <% boxes.forEach(box=> { %>
+                        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                            <div class="aspect-video bg-gray-100">
+                                <% if (box.imageUrl) { %>
+                                    <img src="<%= box.imageUrl %>" alt="<%= box.name %>"
+                                        class="w-full h-full object-cover">
+                                    <% } else { %>
+                                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                            <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <% } %>
+                            </div>
+                            <div class="p-4">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900">
+                                            <%= box.name %>
+                                        </h3>
+                                        <p class="text-sm text-gray-500">
+                                            <%= box.game || 'General' %>
+                                        </p>
+                                    </div>
+                                    <p class="text-lg font-bold text-indigo-600">$<%= (box.price || 0).toFixed(2) %>
+                                    </p>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-2">
+                                    <%= box.description ? (box.description.length> 100 ? box.description.substring(0,
+                                        100) + '...' : box.description) : 'No description' %>
+                                </p>
+                                <div class="mt-3 flex items-center justify-between">
+                                    <span class="text-sm text-gray-500">Stock: <%= box.quantity %></span>
+                                    <span
+                                        class="px-2 py-1 text-xs rounded-full <%= box.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' %>">
+                                        <%= box.isActive ? 'Active' : 'Inactive' %>
+                                    </span>
+                                </div>
+                                <div class="mt-4 pt-4 border-t flex justify-end space-x-3">
+                                    <a href="/admin/boxes/<%= box.id %>/edit"
+                                        class="text-indigo-600 hover:text-indigo-800 text-sm">Edit</a>
+                                    <form action="/admin/boxes/<%= box.id %>/delete" method="POST"
+                                        onsubmit="return confirm('Delete this box?')">
+                                        <button type="submit"
+                                            class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <% }); %>
+                            <% } else { %>
+                                <div class="col-span-full bg-white rounded-xl shadow-sm p-12 text-center text-gray-500">
+                                    No boxes yet. Click "Add Box" to create product bundles.
+                                </div>
+                                <% } %>
+            </div>
+        </div>
+
+        <!-- Create Modal -->
+        <div id="createModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Add Box</h3>
+                    <button onclick="document.getElementById('createModal').classList.add('hidden')"
+                        class="text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+                <form action="/admin/boxes/create" method="POST" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Box Name</label>
+                        <input type="text" name="name" required class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Game</label>
+                            <select name="game" class="w-full px-3 py-2 border rounded-lg">
+                                <option value="">Select Game</option>
+                                <option value="MTG">Magic: The Gathering</option>
+                                <option value="Pokemon">Pokemon</option>
+                                <option value="Yu-Gi-Oh">Yu-Gi-Oh</option>
+                                <option value="One Piece">One Piece</option>
+                                <option value="Flesh & Blood">Flesh & Blood</option>
+                                <option value="Lorcana">Lorcana</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                            <input type="number" name="price" step="0.01" required
+                                class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                            <input type="number" name="quantity" value="1" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                            <input type="url" name="image_url" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea name="description" rows="2" class="w-full px-3 py-2 border rounded-lg"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" onclick="document.getElementById('createModal').classList.add('hidden')"
+                            class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <%- include('../partials/admin_layout_end') %>

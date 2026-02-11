@@ -1,0 +1,49 @@
+<footer class="bg-gray-900 border-t border-gray-800 py-12">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <a href="/" class="inline-block mb-6">
+            <span class="text-2xl font-bold text-gray-100 font-display">CardNoble</span>
+        </a>
+        <div class="flex justify-center space-x-6 mb-8 text-gray-400">
+            <a href="/products" class="hover:text-yellow-500 transition-colors">Products</a>
+            <a href="/sets" class="hover:text-yellow-500 transition-colors">All Sets</a>
+            <a href="/binders" class="hover:text-yellow-500 transition-colors">Binders</a>
+            <a href="/support" class="hover:text-yellow-500 transition-colors">Support</a>
+        </div>
+        <p class="text-gray-600 text-sm">© 2024 CardNoble Marketplace. All rights reserved.</p>
+    </div>
+</footer>
+
+<script>
+    // Cart functionality
+    async function addToCart(productId, stockId, quantity = 1) {
+        try {
+            const response = await fetch('/api/cart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: productId, stock_id: stockId, quantity })
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert('Added to cart!');
+                updateCartCount();
+            } else {
+                alert(data.error || 'Error adding to cart');
+            }
+        } catch (err) {
+            alert('Error adding to cart');
+        }
+    }
+
+    async function updateCartCount() {
+        try {
+            const response = await fetch('/api/cart');
+            const data = await response.json();
+            const countEl = document.getElementById('cart-count');
+            if (countEl) {
+                countEl.textContent = data.count || 0;
+            }
+        } catch (err) { }
+    }
+
+    document.addEventListener('DOMContentLoaded', updateCartCount);
+</script>

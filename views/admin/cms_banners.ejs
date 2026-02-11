@@ -1,0 +1,116 @@
+<%- include('../partials/admin_layout_start', { title: 'Banners' }) %>
+    <%- include('../partials/admin_header', { title: 'Banners' }) %>
+
+        <div class="space-y-6">
+            <!-- Header -->
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-900">Manage Banners</h2>
+                <button onclick="document.getElementById('createModal').classList.remove('hidden')"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                    + Add Banner
+                </button>
+            </div>
+
+            <!-- Banners Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <% if (banners.length> 0) { %>
+                    <% banners.forEach(banner=> { %>
+                        <div
+                            class="bg-white rounded-xl shadow-sm overflow-hidden <%= banner.isActive ? 'ring-2 ring-green-500' : 'opacity-75' %>">
+                            <div class="aspect-[3/1] bg-gray-100">
+                                <% if (banner.imageUrl) { %>
+                                    <img src="<%= banner.imageUrl %>" alt="<%= banner.title %>"
+                                        class="w-full h-full object-cover">
+                                    <% } else { %>
+                                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                            No image
+                                        </div>
+                                        <% } %>
+                            </div>
+                            <div class="p-4">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900">
+                                            <%= banner.title %>
+                                        </h3>
+                                        <p class="text-sm text-gray-500">Order: <%= banner.ordering %>
+                                        </p>
+                                    </div>
+                                    <form action="/admin/cms-banners/<%= banner.id %>/toggle" method="POST">
+                                        <button type="submit"
+                                            class="px-2 py-1 text-xs rounded-full <%= banner.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' %>">
+                                            <%= banner.isActive ? 'Active' : 'Inactive' %>
+                                        </button>
+                                    </form>
+                                </div>
+                                <% if (banner.url) { %>
+                                    <p class="text-sm text-indigo-600 mt-2 truncate">
+                                        <%= banner.url %>
+                                    </p>
+                                    <% } %>
+                                        <div class="mt-4 flex justify-end space-x-3">
+                                            <a href="/admin/cms-banners/<%= banner.id %>/edit"
+                                                class="text-indigo-600 hover:text-indigo-800 text-sm">Edit</a>
+                                            <form action="/admin/cms-banners/<%= banner.id %>/delete" method="POST"
+                                                onsubmit="return confirm('Delete this banner?')">
+                                                <button type="submit"
+                                                    class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                                            </form>
+                                        </div>
+                            </div>
+                        </div>
+                        <% }); %>
+                            <% } else { %>
+                                <div class="col-span-full bg-white rounded-xl shadow-sm p-12 text-center text-gray-500">
+                                    No banners yet. Click "Add Banner" to create one.
+                                </div>
+                                <% } %>
+            </div>
+        </div>
+
+        <!-- Create Modal -->
+        <div id="createModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Add Banner</h3>
+                    <button onclick="document.getElementById('createModal').classList.add('hidden')"
+                        class="text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+                <form action="/admin/cms-banners/create" method="POST" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                        <input type="text" name="title" required class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                        <input type="url" name="image_url" class="w-full px-3 py-2 border rounded-lg"
+                            placeholder="https://...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Link URL (optional)</label>
+                        <input type="url" name="url" class="w-full px-3 py-2 border rounded-lg"
+                            placeholder="https://...">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                            <input type="number" name="ordering" value="0" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                        <div class="flex items-end">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="is_active" checked class="mr-2">
+                                <span class="text-sm text-gray-700">Active</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" onclick="document.getElementById('createModal').classList.add('hidden')"
+                            class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <%- include('../partials/admin_layout_end') %>

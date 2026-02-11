@@ -1,0 +1,133 @@
+<%- include('../partials/admin_layout_start', { title: 'Stock Order #' + (order.reference || order.id) }) %>
+    <%- include('../partials/admin_header', { title: 'Stock Order #' + (order.reference || order.id) }) %>
+
+        <div class="max-w-4xl mx-auto space-y-6">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="<%= order.orderType === 'stock_in' ? '/admin/stock-in' : '/admin/stock-out' %>"
+                        class="text-gray-500 hover:text-gray-700">
+                        ← Back
+                    </a>
+                    <h2 class="text-xl font-semibold text-gray-900">
+                        <%= order.orderType==='stock_in' ? 'Stock-In' : 'Stock-Out' %> Order
+                    </h2>
+                </div>
+                <span
+                    class="px-3 py-1 rounded-full text-sm <%= order.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' %>">
+                    <%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %>
+                </span>
+            </div>
+
+            <!-- Order Info -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Reference</p>
+                        <p class="font-mono font-medium">
+                            <%= order.reference || '-' %>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Type</p>
+                        <p class="font-medium">
+                            <%= order.orderType==='stock_in' ? 'Stock In' : 'Stock Out' %>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Items</p>
+                        <p class="font-medium">
+                            <%= order.items ? order.items.length : 0 %> items
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Created</p>
+                        <p class="font-medium">
+                            <%= new Date(order.createdAt).toLocaleDateString() %>
+                                <%= new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit' ,
+                                    minute:'2-digit'}) %>
+                        </p>
+                    </div>
+                </div>
+                <% if (order.notes) { %>
+                    <div class="mt-4 pt-4 border-t">
+                        <p class="text-sm text-gray-500">Notes</p>
+                        <p>
+                            <%= order.notes %>
+                        </p>
+                    </div>
+                    <% } %>
+            </div>
+
+            <!-- Items Table -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b">
+                    <h3 class="font-semibold text-gray-900">Order Items</h3>
+                </div>
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Condition</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                            <% if (order.orderType==='stock_in' ) { %>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cost/Item
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                                <% } else { %>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason
+                                    </th>
+                                    <% } %>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <% if (order.items && order.items.length> 0) { %>
+                            <% order.items.forEach(item=> { %>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4">
+                                        <p class="font-medium text-gray-900">
+                                            <%= item.product ? item.product.name : 'Unknown Product' %>
+                                        </p>
+                                        <p class="text-sm text-gray-500">
+                                            <%= item.product ? item.product.setName : '' %>
+                                        </p>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2 py-1 bg-gray-100 rounded text-sm">
+                                            <%= item.condition %>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 font-medium">
+                                        <%= item.quantity %>
+                                    </td>
+                                    <% if (order.orderType==='stock_in' ) { %>
+                                        <td class="px-6 py-4">$<%= (item.costPerItem || 0).toFixed(2) %>
+                                        </td>
+                                        <td class="px-6 py-4 font-medium">$<%= ((item.costPerItem || 0) *
+                                                item.quantity).toFixed(2) %>
+                                        </td>
+                                        <% } else { %>
+                                            <td class="px-6 py-4 text-gray-500">
+                                                <%= item.notes || '-' %>
+                                            </td>
+                                            <% } %>
+                                </tr>
+                                <% }); %>
+                                    <% } %>
+                    </tbody>
+                    <% if (order.orderType==='stock_in' ) { %>
+                        <tfoot class="bg-gray-50">
+                            <tr>
+                                <td colspan="4" class="px-6 py-3 text-right font-medium">Total Cost:</td>
+                                <td class="px-6 py-3 font-bold text-lg">
+                                    $<%= order.items ? order.items.reduce((sum, item)=> sum + ((item.costPerItem || 0) *
+                                        item.quantity), 0).toFixed(2) : '0.00' %>
+                                </td>
+                            </tr>
+                        </tfoot>
+                        <% } %>
+                </table>
+            </div>
+        </div>
+
+        <%- include('../partials/admin_layout_end') %>

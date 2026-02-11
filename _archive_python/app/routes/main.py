@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import current_user
+from app import db
 from app.models import Product, Category, Banner, CartItem
 
 main_bp = Blueprint('main', __name__)
@@ -66,11 +67,20 @@ def product_detail(slug):
 @main_bp.route('/sets')
 def sets():
     """Browse products by set."""
-    sets_data = Product.query.with_entities(
-        Product.set_code, 
-        Product.set_name
-    ).distinct().all()
+    from sqlalchemy import func
+    sets_data = db.session.query(
+        Product.set_code,
+        Product.set_name,
+        func.count(Product.id).label('product_count')
+    ).group_by(Product.set_code, Product.set_name).order_by(Product.set_name).all()
     return render_template('storefront/sets.html', sets=sets_data)
+
+
+
+@main_bp.route('/support')
+def support():
+    """Support page with FAQ and contact form."""
+    return render_template('storefront/support.html')
 
 
 @main_bp.route('/cart')
@@ -95,3 +105,4 @@ def checkout():
     total = sum(item.stock.price * item.quantity for item in items)
     
     return render_template('storefront/checkout.html', items=items, total=total)
+

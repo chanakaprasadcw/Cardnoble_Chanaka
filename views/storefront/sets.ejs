@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head') %>
+</head>
+
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <%- include('../partials/storefront_nav') %>
+
+        <main class="bg-gray-900 min-h-screen">
+            <!-- Page Hero -->
+            <div class="relative bg-gradient-to-b from-gray-800/50 to-gray-900 border-b border-gray-800">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                    <nav class="flex items-center text-sm text-gray-500 mb-3">
+                        <a href="/" class="hover:text-yellow-500 transition-colors">Home</a>
+                        <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span class="text-gray-300">All Sets</span>
+                    </nav>
+                    <h1 class="text-4xl font-bold text-white font-display mb-2">All Sets</h1>
+                    <p class="text-gray-400">Browse all available card sets from A to Z</p>
+                </div>
+            </div>
+
+            <!-- Alphabet Filter -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex flex-wrap gap-2 mb-8" id="alpha-filter">
+                    <button
+                        class="alpha-btn active-alpha px-3 py-1.5 text-xs font-bold rounded-lg bg-yellow-500 text-gray-900 transition-all"
+                        data-letter="all">ALL</button>
+                    <% const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ' .split(''); %>
+                        <% alphabet.forEach(letter=> { %>
+                            <button
+                                class="alpha-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-all"
+                                data-letter="<%= letter %>">
+                                <%= letter %>
+                            </button>
+                            <% }); %>
+                </div>
+
+                <!-- Sets Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+                    id="sets-grid">
+                    <% if (sets.length> 0) { %>
+                        <% sets.forEach(set=> { %>
+                            <a href="/products?q=<%= encodeURIComponent(set.name) %>"
+                                class="set-card group bg-gray-800 border border-gray-700 rounded-xl p-5 hover:border-yellow-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/5 hover:-translate-y-0.5"
+                                data-name="<%= set.name %>">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span
+                                        class="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 text-[10px] font-black uppercase tracking-wider rounded">
+                                        <%= set.code %>
+                                    </span>
+                                    <svg class="w-4 h-4 text-gray-600 group-hover:text-yellow-500 transition-colors transform group-hover:translate-x-0.5"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                                <h3
+                                    class="text-sm font-bold text-gray-200 group-hover:text-yellow-500 transition-colors leading-tight line-clamp-2 min-h-[2.5rem]">
+                                    <%= set.name %>
+                                </h3>
+                                <% if (set.productCount !==undefined) { %>
+                                    <p class="text-xs text-gray-500 mt-2">
+                                        <%= set.productCount %> cards
+                                    </p>
+                                    <% } %>
+                            </a>
+                            <% }); %>
+                                <% } else { %>
+                                    <div class="col-span-full py-20 text-center">
+                                        <div
+                                            class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800 text-gray-600 mb-4">
+                                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                            </svg>
+                                        </div>
+                                        <h3 class="text-xl font-bold text-white mb-2 font-display">No Sets Found</h3>
+                                        <p class="text-gray-500">Check back later for new set additions.</p>
+                                    </div>
+                                    <% } %>
+                </div>
+            </div>
+        </main>
+
+        <%- include('../partials/storefront_footer') %>
+
+            <script>
+                // Alphabet filter
+                document.querySelectorAll('.alpha-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        // Update active state
+                        document.querySelectorAll('.alpha-btn').forEach(b => {
+                            b.classList.remove('bg-yellow-500', 'text-gray-900', 'active-alpha');
+                            b.classList.add('bg-gray-800', 'border', 'border-gray-700', 'text-gray-400');
+                        });
+                        this.classList.remove('bg-gray-800', 'border-gray-700', 'text-gray-400');
+                        this.classList.add('bg-yellow-500', 'text-gray-900', 'active-alpha');
+
+                        const letter = this.dataset.letter;
+                        document.querySelectorAll('.set-card').forEach(card => {
+                            const name = card.dataset.name;
+                            if (letter === 'all' || name.charAt(0).toUpperCase() === letter) {
+                                card.style.display = '';
+                            } else {
+                                card.style.display = 'none';
+                            }
+                        });
+                    });
+                });
+            </script>
+</body>
+
+</html>

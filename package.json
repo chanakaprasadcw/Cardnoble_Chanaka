@@ -1,0 +1,30 @@
+{
+  "name": "cardnoble",
+  "version": "1.0.0",
+  "description": "CardNoble - Trading Card Store & Binder Manager",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "seed": "node seed.js",
+    "prisma:pull": "npx prisma db pull",
+    "prisma:generate": "npx prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.3.0",
+    "axios": "^1.7.0",
+    "bcryptjs": "^2.4.3",
+    "cheerio": "^1.2.0",
+    "connect-sqlite3": "^0.9.15",
+    "dotenv": "^16.4.0",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
+    "morgan": "^1.10.0",
+    "sqlite3": "^5.1.7",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "prisma": "^6.3.0"
+  }
+}

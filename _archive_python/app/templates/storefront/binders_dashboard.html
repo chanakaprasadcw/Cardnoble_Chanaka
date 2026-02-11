@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+
+{% block title %}My Binders - CardNoble{% endblock %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cinzel:wght@400;700;900&display=swap');
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background: #0a0a1a;
+        color: #e2e8f0;
+        min-height: 100vh;
+    }
+
+    .binder-card {
+        background: linear-gradient(145deg, #1a1a2e 0%, #16162a 100%);
+        border: 1px solid #2a2a4a;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .binder-card:hover {
+        transform: translateY(-4px);
+        border-color: #6366f1;
+        box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15);
+    }
+
+    .binder-cover {
+        height: 140px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .binder-cover::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, transparent 50%, #1a1a2e 100%);
+    }
+
+    .binder-cover .grid-preview {
+        display: grid;
+        gap: 3px;
+        padding: 12px;
+        position: relative;
+        z-index: 1;
+        opacity: 0.6;
+    }
+
+    .binder-cover .grid-preview .slot {
+        width: 28px;
+        height: 38px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 3px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .binder-cover .grid-preview .slot.filled {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .binder-info {
+        padding: 16px 20px 20px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .binder-name {
+        font-family: 'Cinzel', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #f1f5f9;
+        margin-bottom: 4px;
+    }
+
+    .binder-meta {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin-bottom: 12px;
+    }
+
+    .progress-bar-bg {
+        height: 6px;
+        background: #1e1e3a;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6366f1, #a78bfa);
+        border-radius: 3px;
+        transition: width 0.5s ease;
+    }
+
+    .progress-text {
+        font-size: 0.7rem;
+        color: #64748b;
+        margin-top: 4px;
+    }
+
+    .create-binder-card {
+        background: linear-gradient(145deg, #1a1a2e 0%, #16162a 100%);
+        border: 2px dashed #2a2a4a;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 260px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .create-binder-card:hover {
+        border-color: #6366f1;
+        background: linear-gradient(145deg, #1e1e3a 0%, #1a1a30 100%);
+    }
+
+    .create-binder-card .plus-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: white;
+        margin-bottom: 12px;
+        transition: transform 0.3s;
+    }
+
+    .create-binder-card:hover .plus-icon {
+        transform: scale(1.1) rotate(90deg);
+    }
+
+    /* Create Modal */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-box {
+        background: #1a1a2e;
+        border: 1px solid #2a2a4a;
+        border-radius: 20px;
+        padding: 32px;
+        width: 90%;
+        max-width: 460px;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-box h2 {
+        font-family: 'Cinzel', serif;
+        font-size: 1.5rem;
+        color: #f1f5f9;
+        margin-bottom: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 10px 14px;
+        background: #0f0f23;
+        border: 1px solid #2a2a4a;
+        border-radius: 10px;
+        color: #e2e8f0;
+        font-size: 0.95rem;
+        font-family: 'Inter', sans-serif;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        border-color: #6366f1;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 70px;
+    }
+
+    .color-options {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .color-option {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .color-option:hover,
+    .color-option.selected {
+        border-color: white;
+        transform: scale(1.15);
+    }
+
+    .btn-primary {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-secondary {
+        width: 100%;
+        padding: 10px;
+        background: transparent;
+        border: 1px solid #2a2a4a;
+        border-radius: 12px;
+        color: #94a3b8;
+        font-size: 0.9rem;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+        border-color: #6366f1;
+        color: #e2e8f0;
+    }
+
+    .delete-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ef4444;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 5;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .binder-card:hover .delete-btn {
+        display: flex;
+    }
+
+    .delete-btn:hover {
+        background: #ef4444;
+        color: white;
+    }
+</style>
+
+<!-- Header -->
+<header class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50 backdrop-blur-md bg-opacity-90">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+            <a href="{{ url_for('main.index') }}" class="flex items-center gap-2 group">
+                <div
+                    class="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-lg flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-yellow-500/20">
+                    <span class="text-gray-900 font-bold text-xl">C</span>
+                </div>
+                <span
+                    class="text-2xl font-bold text-gray-100 font-display tracking-tight group-hover:text-yellow-500 transition-colors">CardNoble</span>
+            </a>
+            <nav class="flex items-center gap-6 text-sm">
+                <a href="{{ url_for('main.products') }}"
+                    class="text-gray-400 hover:text-gray-200 transition-colors">Products</a>
+                <a href="{{ url_for('main.sets') }}" class="text-gray-400 hover:text-gray-200 transition-colors">All
+                    Sets</a>
+                <a href="{{ url_for('binder.binders_landing') }}" class="text-yellow-500 font-semibold">Binders</a>
+                <a href="{{ url_for('main.support') }}"
+                    class="text-gray-400 hover:text-gray-200 transition-colors">Support</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main style="max-width: 1200px; margin: 0 auto; padding: 40px 24px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
+        <div>
+            <h1 style="font-family: 'Cinzel', serif; font-size: 2.2rem; font-weight: 900; color: #f1f5f9;">My Binders
+            </h1>
+            <p style="color: #64748b; margin-top: 4px;">Organize and track your card collection</p>
+        </div>
+        <div style="font-size: 0.85rem; color: #64748b;">
+            {{ binders|length }} binder{{ 's' if binders|length != 1 else '' }}
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
+        <!-- Create New Binder Card -->
+        <div class="create-binder-card" onclick="openCreateModal()">
+            <div class="plus-icon">+</div>
+            <div style="font-weight: 600; color: #94a3b8;">Create New Binder</div>
+            <div style="font-size: 0.8rem; color: #475569; margin-top: 4px;">Start organizing your cards</div>
+        </div>
+
+        <!-- Existing Binders -->
+        {% for binder in binders %}
+        <div class="binder-card"
+            onclick="window.location.href='{{ url_for('binder.binder_editor', binder_id=binder.id) }}'">
+            <button class="delete-btn"
+                onclick="event.stopPropagation(); deleteBinder({{ binder.id }}, '{{ binder.name }}')">✕</button>
+            <div class="binder-cover"
+                style="background: linear-gradient(135deg, {{ binder.cover_color }}, {{ binder.cover_color }}88);">
+                <div class="grid-preview" style="grid-template-columns: repeat({{ binder.grid_cols }}, 1fr);">
+                    {% for i in range(binder.grid_cols * binder.grid_rows) %}
+                    <div class="slot {{ 'filled' if i < binder.card_count else '' }}"></div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="binder-info">
+                <div class="binder-name">{{ binder.name }}</div>
+                <div class="binder-meta">{{ binder.card_count }} cards · {{ binder.grid_size }} grid</div>
+                {% set pct = (binder.collected_count / binder.card_count * 100) if binder.card_count > 0 else 0 %}
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: {{ pct }}%"></div>
+                </div>
+                <div class="progress-text">{{ binder.collected_count }}/{{ binder.card_count }} collected ({{ pct|int
+                    }}%)</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</main>
+
+<!-- Create Binder Modal -->
+<div class="modal-overlay" id="createModal">
+    <div class="modal-box">
+        <h2>Create New Binder</h2>
+        <div class="form-group">
+            <label>Binder Name</label>
+            <input type="text" id="binderName" placeholder="My Collection" maxlength="100">
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea id="binderDesc" placeholder="What's this binder for?"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Grid Size</label>
+            <select id="binderGrid">
+                <option value="2x2">2 × 2 (4 slots per page)</option>
+                <option value="3x3" selected>3 × 3 (9 slots per page)</option>
+                <option value="4x3">4 × 3 (12 slots per page)</option>
+                <option value="4x4">4 × 4 (16 slots per page)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Cover Color</label>
+            <div class="color-options" id="colorOptions">
+                <div class="color-option selected" style="background: #6366f1;" data-color="#6366f1"></div>
+                <div class="color-option" style="background: #ef4444;" data-color="#ef4444"></div>
+                <div class="color-option" style="background: #f59e0b;" data-color="#f59e0b"></div>
+                <div class="color-option" style="background: #10b981;" data-color="#10b981"></div>
+                <div class="color-option" style="background: #3b82f6;" data-color="#3b82f6"></div>
+                <div class="color-option" style="background: #ec4899;" data-color="#ec4899"></div>
+                <div class="color-option" style="background: #8b5cf6;" data-color="#8b5cf6"></div>
+                <div class="color-option" style="background: #14b8a6;" data-color="#14b8a6"></div>
+            </div>
+        </div>
+        <button class="btn-primary" onclick="createBinder()">Create Binder</button>
+        <button class="btn-secondary" onclick="closeCreateModal()">Cancel</button>
+    </div>
+</div>
+
+<script>
+    let selectedColor = '#6366f1';
+
+    function openCreateModal() {
+        document.getElementById('createModal').classList.add('active');
+        document.getElementById('binderName').focus();
+    }
+    function closeCreateModal() {
+        document.getElementById('createModal').classList.remove('active');
+    }
+    document.getElementById('createModal').addEventListener('click', function (e) {
+        if (e.target === this) closeCreateModal();
+    });
+
+    // Color picker
+    document.querySelectorAll('.color-option').forEach(el => {
+        el.addEventListener('click', function () {
+            document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedColor = this.dataset.color;
+        });
+    });
+
+    async function createBinder() {
+        const name = document.getElementById('binderName').value.trim() || 'Untitled Binder';
+        const description = document.getElementById('binderDesc').value.trim();
+        const grid_size = document.getElementById('binderGrid').value;
+
+        const res = await fetch('/api/binders/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description, grid_size, cover_color: selectedColor })
+        });
+        if (res.ok) {
+            const data = await res.json();
+            window.location.href = '/binders/' + data.id;
+        }
+    }
+
+    async function deleteBinder(id, name) {
+        if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+        const res = await fetch(`/api/binders/${id}/delete`, { method: 'POST' });
+        if (res.ok) window.location.reload();
+    }
+</script>
+{% endblock %}

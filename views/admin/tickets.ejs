@@ -1,0 +1,114 @@
+<%- include('../partials/admin_layout_start', { title: 'Support Tickets' }) %>
+    <%- include('../partials/admin_header', { title: 'Support Tickets' }) %>
+
+        <div class="space-y-6">
+            <!-- Header -->
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-900">Support Tickets</h2>
+                <div class="flex space-x-2">
+                    <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
+                        <%= tickets.filter(t=> t.status === 'open').length %> Open
+                    </span>
+                    <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                        <%= tickets.filter(t=> t.status === 'in_progress').length %> In Progress
+                    </span>
+                </div>
+            </div>
+
+            <!-- Tickets Table -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <% if (tickets.length> 0) { %>
+                            <% tickets.forEach(ticket=> { %>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-mono text-sm">#<%= ticket.id %>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <p class="font-medium text-gray-900">
+                                            <%= ticket.subject %>
+                                        </p>
+                                        <p class="text-sm text-gray-500 truncate max-w-xs">
+                                            <%= ticket.content.substring(0, 50) %>...
+                                        </p>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <p class="text-gray-900">
+                                            <%= ticket.user ? ticket.user.name : 'Guest' %>
+                                        </p>
+                                        <p class="text-sm text-gray-500">
+                                            <%= ticket.user ? ticket.user.email : '-' %>
+                                        </p>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2 py-1 text-xs rounded-full 
+                                <%= ticket.priority === 'high' ? 'bg-red-100 text-red-800' : 
+                                   ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
+                                   'bg-gray-100 text-gray-800' %>">
+                                            <%= ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1) %>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <script>
+                                            async function updateTicketStatus(id, newStatus) {
+                                                await fetch(`/admin/tickets/${id}/status`, {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ status: newStatus })
+                                                });
+                                                window.location.reload();
+                                            }
+                                        </script>
+                                        <select onchange="updateTicketStatus(<%= ticket.id %>, this.value)"
+                                            class="text-sm border rounded px-2 py-1 bg-white">
+                                            <option value="open" <%=ticket.status==='open' ? 'selected' : '' %>>Open
+                                            </option>
+                                            <option value="in_progress" <%=ticket.status==='in_progress' ? 'selected'
+                                                : '' %>>In Progress</option>
+                                            <option value="resolved" <%=ticket.status==='resolved' ? 'selected' : '' %>
+                                                >Resolved</option>
+                                            <option value="closed" <%=ticket.status==='closed' ? 'selected' : '' %>
+                                                >Closed</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">
+                                        <%= new Date(ticket.createdAt).toLocaleDateString() %>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex space-x-3">
+                                            <!-- View link to be implemented if ticket details page needed, for now just delete -->
+                                            <button
+                                                class="text-indigo-600 hover:text-indigo-800 text-sm cursor-not-allowed opacity-50">View</button>
+                                            <form action="/admin/tickets/<%= ticket.id %>/delete" method="POST"
+                                                onsubmit="return confirm('Delete this ticket?')">
+                                                <button type="submit"
+                                                    class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                                                No tickets yet. Customer support requests will appear here.
+                                            </td>
+                                        </tr>
+                                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <%- include('../partials/admin_layout_end') %>

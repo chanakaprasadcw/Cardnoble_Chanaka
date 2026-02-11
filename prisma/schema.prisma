@@ -1,0 +1,281 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../instance/cardnoble.db"
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  name         String?
+  role         String    @default("customer")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  orders    Order[]
+  cartItems CartItem[]
+  binders   Binder[]
+  tickets   Ticket[]
+  messages  Message[]
+
+  @@map("users")
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String
+  slug String @unique
+
+  products   Product[]
+  promotions Promotion[]
+
+  @@map("categories")
+}
+
+model Product {
+  id         Int      @id @default(autoincrement())
+  name       String
+  slug       String?  @unique
+  setCode    String?  @map("set_code")
+  setName    String?  @map("set_name")
+  categoryId Int?     @map("category_id")
+  imageUrl   String?  @map("image_url")
+  rarity     String?
+  cardType   String?  @map("card_type")
+  language   String?  @default("EN")
+  isFoil     Boolean  @default(false) @map("is_foil")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  category        Category?        @relation(fields: [categoryId], references: [id])
+  stocks          Stock[]
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+  binderCards     BinderCard[]
+  stockOrderItems StockOrderItem[]
+
+  @@map("products")
+}
+
+model Stock {
+  id        Int    @id @default(autoincrement())
+  productId Int    @map("product_id")
+  condition String @default("NM")
+  quantity  Int    @default(0)
+  price     Float
+
+  product   Product    @relation(fields: [productId], references: [id])
+  cartItems CartItem[]
+
+  @@map("stocks")
+}
+
+model CartItem {
+  id        Int @id @default(autoincrement())
+  userId    Int @map("user_id")
+  productId Int @map("product_id")
+  stockId   Int @map("stock_id")
+  quantity  Int @default(1)
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+  stock   Stock   @relation(fields: [stockId], references: [id])
+
+  @@map("cart_items")
+}
+
+model Order {
+  id              Int      @id @default(autoincrement())
+  code            String   @unique
+  userId          Int      @map("user_id")
+  status          String   @default("pending")
+  total           Float
+  shippingName    String?  @map("shipping_name")
+  shippingAddress String?  @map("shipping_address")
+  paymentMethod   String?  @map("payment_method")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user  User        @relation(fields: [userId], references: [id])
+  items OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int   @id @default(autoincrement())
+  orderId   Int   @map("order_id")
+  productId Int   @map("product_id")
+  quantity  Int
+  price     Float
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Banner {
+  id       Int     @id @default(autoincrement())
+  title    String?
+  imageUrl String? @map("image_url")
+  url      String?
+  isActive Boolean @default(true) @map("is_active")
+  ordering Int     @default(0)
+
+  @@map("banners")
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @map("user_id")
+  subject   String?
+  content   String?
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("messages")
+}
+
+model Coupon {
+  id            Int       @id @default(autoincrement())
+  code          String    @unique
+  discountType  String    @default("percentage") @map("discount_type")
+  discountValue Float     @map("discount_value")
+  minOrder      Float     @default(0) @map("min_order")
+  maxUses       Int       @default(0) @map("max_uses")
+  uses          Int       @default(0)
+  isActive      Boolean   @default(true) @map("is_active")
+  expiresAt     DateTime? @map("expires_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("coupons")
+}
+
+model Promotion {
+  id                 Int       @id @default(autoincrement())
+  name               String
+  description        String?
+  discountPercentage Float?    @map("discount_percentage")
+  categoryId         Int?      @map("category_id")
+  isActive           Boolean   @default(true) @map("is_active")
+  startsAt           DateTime? @map("starts_at")
+  endsAt             DateTime? @map("ends_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  @@map("promotions")
+}
+
+model Ticket {
+  id          Int       @id @default(autoincrement())
+  userId      Int?      @map("user_id")
+  subject     String
+  description String?
+  status      String    @default("open")
+  priority    String    @default("normal")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("tickets")
+}
+
+model StockOrder {
+  id        Int      @id @default(autoincrement())
+  orderType String   @map("order_type")
+  reference String?
+  notes     String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  items StockOrderItem[]
+
+  @@map("stock_orders")
+}
+
+model StockOrderItem {
+  id           Int    @id @default(autoincrement())
+  stockOrderId Int    @map("stock_order_id")
+  productId    Int    @map("product_id")
+  quantity     Int
+  condition    String @default("NM")
+  costPerItem  Float  @default(0) @map("cost_per_item")
+  notes        String?
+
+  stockOrder StockOrder @relation(fields: [stockOrderId], references: [id])
+  product    Product    @relation(fields: [productId], references: [id])
+
+  @@map("stock_order_items")
+}
+
+model Testimonial {
+  id           Int      @id @default(autoincrement())
+  customerName String?  @map("customer_name")
+  content      String
+  rating       Int      @default(5)
+  isApproved   Boolean  @default(false) @map("is_approved")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("testimonials")
+}
+
+model WalletTransaction {
+  id              Int      @id @default(autoincrement())
+  transactionType String   @map("transaction_type")
+  amount          Float
+  description     String?
+  reference       String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("wallet_transactions")
+}
+
+model Box {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  quantity    Int      @default(0)
+  imageUrl    String?  @map("image_url")
+  categoryId  Int?     @map("category_id")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("boxes")
+}
+
+model Binder {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  name        String
+  description String?  @default("")
+  gridSize    String   @default("3x3") @map("grid_size")
+  coverColor  String   @default("#6366f1") @map("cover_color")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user  User         @relation(fields: [userId], references: [id])
+  cards BinderCard[]
+
+  @@map("binders")
+}
+
+model BinderCard {
+  id          Int      @id @default(autoincrement())
+  binderId    Int      @map("binder_id")
+  productId   Int      @map("product_id")
+  position    Int      @default(0)
+  isCollected Boolean  @default(false) @map("is_collected")
+  addedAt     DateTime @default(now()) @map("added_at")
+
+  binder  Binder  @relation(fields: [binderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("binder_cards")
+}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head') %>
+</head>
+
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
+    <%- include('../partials/storefront_nav') %>
+
+        <div class="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+            <!-- Background decoration -->
+            <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-yellow-500/5 blur-3xl"></div>
+                <div class="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-purple-500/5 blur-3xl"></div>
+            </div>
+
+            <div
+                class="max-w-md w-full space-y-8 relative z-10 bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-2xl">
+                <div class="text-center">
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-yellow-500/20 transform rotate-12">
+                        <span class="text-gray-900 font-bold text-3xl">C</span>
+                    </div>
+                    <h2 class="text-3xl font-bold font-display text-white">Welcome Back</h2>
+                    <p class="mt-2 text-sm text-gray-400">Sign in to manage your collection</p>
+                </div>
+
+                <% if (locals.error && error.length> 0) { %>
+                    <div
+                        class="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 rounded-lg text-sm text-center">
+                        <%= error %>
+                    </div>
+                    <% } %>
+                        <% if (locals.success && success.length> 0) { %>
+                            <div
+                                class="bg-green-500/10 border border-green-500/50 text-green-500 px-4 py-3 rounded-lg text-sm text-center">
+                                <%= success %>
+                            </div>
+                            <% } %>
+
+                                <form class="mt-8 space-y-6" action="/auth/login" method="POST">
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label for="email"
+                                                class="block text-sm font-medium text-gray-400 mb-1">Email
+                                                address</label>
+                                            <input id="email" name="email" type="email" autocomplete="email" required
+                                                class="appearance-none relative block w-full px-4 py-3 bg-gray-900/50 border border-gray-600 placeholder-gray-500 text-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500 focus:z-10 sm:text-sm transition-colors"
+                                                placeholder="Enter your email">
+                                        </div>
+                                        <div>
+                                            <label for="password"
+                                                class="block text-sm font-medium text-gray-400 mb-1">Password</label>
+                                            <input id="password" name="password" type="password"
+                                                autocomplete="current-password" required
+                                                class="appearance-none relative block w-full px-4 py-3 bg-gray-900/50 border border-gray-600 placeholder-gray-500 text-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500 focus:z-10 sm:text-sm transition-colors"
+                                                placeholder="Enter your password">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <button type="submit"
+                                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-gray-900 bg-yellow-500 hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 focus:ring-offset-gray-900 transition-all shadow-lg shadow-yellow-500/20 transform hover:scale-[1.02]">
+                                            Sign in
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <div class="text-center mt-4">
+                                    <p class="text-sm text-gray-400">
+                                        Don't have an account?
+                                        <a href="/auth/register"
+                                            class="font-medium text-yellow-500 hover:text-yellow-400 transition-colors">
+                                            Create one now
+                                        </a>
+                                    </p>
+                                </div>
+            </div>
+        </div>
+
+        <%- include('../partials/storefront_footer') %>
+</body>
+
+</html>

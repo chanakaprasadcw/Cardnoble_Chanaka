@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head') %>
+</head>
+
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <%- include('../partials/storefront_nav') %>
+
+        <main class="bg-gray-900 min-h-screen">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <!-- Breadcrumb -->
+                <nav class="flex items-center text-sm text-gray-500 mb-8">
+                    <a href="/" class="hover:text-yellow-500 transition-colors">Home</a>
+                    <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                    <a href="/products" class="hover:text-yellow-500 transition-colors">Products</a>
+                    <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                    <span class="text-gray-300 truncate max-w-xs">
+                        <%= product.name %>
+                    </span>
+                </nav>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <!-- Product Image -->
+                    <div class="relative group">
+                        <div
+                            class="absolute -inset-1 bg-gradient-to-r from-yellow-600/20 to-purple-600/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition duration-500">
+                        </div>
+                        <div
+                            class="relative bg-gray-800 border border-gray-700 rounded-2xl p-8 flex items-center justify-center min-h-[500px]">
+                            <img src="<%= product.imageUrl %>" alt="<%= product.name %>"
+                                class="max-h-[450px] object-contain drop-shadow-2xl transition-transform duration-500 group-hover:scale-105">
+                            <% if (product.isFoil) { %>
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+                                </div>
+                                <span
+                                    class="absolute top-4 right-4 px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-gray-900 text-xs font-black uppercase tracking-wider rounded-lg shadow-lg">FOIL</span>
+                                <% } %>
+                        </div>
+                    </div>
+
+                    <!-- Product Info -->
+                    <div>
+                        <!-- Set Badge -->
+                        <div class="flex items-center gap-3 mb-4">
+                            <% if (product.setCode) { %>
+                                <span
+                                    class="px-3 py-1 bg-gray-800 border border-gray-700 text-yellow-500 rounded-full text-xs font-bold uppercase tracking-wider">
+                                    <%= product.setCode %>
+                                </span>
+                                <% } %>
+                                    <% if (product.setName) { %>
+                                        <span class="text-gray-400 text-sm">
+                                            <%= product.setName %>
+                                        </span>
+                                        <% } %>
+                        </div>
+
+                        <!-- Product Name -->
+                        <h1 class="text-3xl md:text-4xl font-bold text-white mb-6 font-display leading-tight">
+                            <%= product.name %>
+                        </h1>
+
+                        <!-- Tags -->
+                        <div class="flex items-center gap-3 mb-8">
+                            <% if (product.rarity) { %>
+                                <span
+                                    class="px-3 py-1.5 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded-lg text-sm font-medium">
+                                    <svg class="w-3.5 h-3.5 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path
+                                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    <%= product.rarity %>
+                                </span>
+                                <% } %>
+                                    <% if (product.cardType) { %>
+                                        <span
+                                            class="px-3 py-1.5 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg text-sm font-medium">
+                                            <%= product.cardType %>
+                                        </span>
+                                        <% } %>
+                        </div>
+
+                        <!-- Available Stock -->
+                        <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-6 mb-8">
+                            <h3 class="text-sm font-bold text-yellow-500 uppercase tracking-wider mb-5">Available Stock
+                            </h3>
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left text-xs text-gray-500 uppercase tracking-wider">
+                                        <th class="pb-3 font-medium">Condition</th>
+                                        <th class="pb-3 font-medium">Qty</th>
+                                        <th class="pb-3 font-medium">Price</th>
+                                        <th class="pb-3 font-medium text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-700/50">
+                                    <% if (product.stocks && product.stocks.length> 0) { %>
+                                        <% product.stocks.forEach(stock=> { %>
+                                            <% if (stock.quantity> 0) { %>
+                                                <tr class="group/row hover:bg-gray-700/30 transition-colors">
+                                                    <td class="py-4">
+                                                        <span
+                                                            class="inline-flex items-center px-2.5 py-1 bg-gray-700/50 border border-gray-600 text-gray-200 text-xs font-bold rounded-md">
+                                                            <%= stock.condition %>
+                                                        </span>
+                                                    </td>
+                                                    <td class="py-4 text-gray-400 text-sm">
+                                                        <%= stock.quantity %>
+                                                    </td>
+                                                    <td class="py-4">
+                                                        <span class="text-yellow-500 font-bold text-lg">$<%=
+                                                                stock.price.toFixed(2) %></span>
+                                                    </td>
+                                                    <td class="py-4 text-right">
+                                                        <button onclick="addToCart(<%= product.id %>, <%= stock.id %>)"
+                                                            class="px-5 py-2 bg-yellow-500 hover:bg-yellow-400 text-gray-900 rounded-lg text-sm font-bold transition-all hover:scale-105 transform shadow-lg shadow-yellow-500/20">
+                                                            Add to Cart
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <% } %>
+                                                    <% }); %>
+                                                        <% } else { %>
+                                                            <tr>
+                                                                <td colspan="4" class="py-8 text-center">
+                                                                    <div class="text-gray-500">
+                                                                        <svg class="w-8 h-8 mx-auto mb-2 opacity-50"
+                                                                            fill="none" stroke="currentColor"
+                                                                            viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round"
+                                                                                stroke-linejoin="round" stroke-width="2"
+                                                                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                                                        </svg>
+                                                                        No stock available
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                            <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Quick Buy -->
+                        <% if (product.stocks && product.stocks.length> 0) { %>
+                            <div class="flex items-center gap-4">
+                                <div class="flex-1 text-center bg-gray-800 border border-gray-700 rounded-xl p-4">
+                                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">From</p>
+                                    <p class="text-2xl font-bold text-yellow-500">$<%=
+                                            Math.min(...product.stocks.map(s=> s.price)).toFixed(2) %></p>
+                                </div>
+                                <div class="flex-1 text-center bg-gray-800 border border-gray-700 rounded-xl p-4">
+                                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">In Stock</p>
+                                    <p class="text-2xl font-bold text-white">
+                                        <%= product.stocks.reduce((acc, s)=> acc + s.quantity, 0) %>
+                                    </p>
+                                </div>
+                            </div>
+                            <% } %>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <%- include('../partials/storefront_footer') %>
+</body>
+
+</html>

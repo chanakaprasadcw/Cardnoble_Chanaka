@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head') %>
+</head>
+
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <%- include('../partials/storefront_nav') %>
+
+        <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen">
+            <h1 class="text-3xl font-bold text-white font-display mb-8">Your Cart</h1>
+
+            <% if (items && items.length> 0) { %>
+                <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden mb-8">
+                    <table class="w-full">
+                        <thead class="bg-gray-900/50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-400">Product</th>
+                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-400">Condition</th>
+                                <th class="px-6 py-4 text-left text-sm font-medium text-gray-400">Qty</th>
+                                <th class="px-6 py-4 text-right text-sm font-medium text-gray-400">Subtotal</th>
+                                <th class="px-6 py-4"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700">
+                            <% items.forEach(item=> { %>
+                                <tr>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <img src="<%= item.product.imageUrl || '/static/images/card-back.jpg' %>"
+                                                alt="" class="w-12 h-16 object-contain mr-4 bg-gray-900 rounded">
+                                            <div>
+                                                <p class="font-medium text-gray-200">
+                                                    <%= item.product.name %>
+                                                </p>
+                                                <p class="text-sm text-gray-500">
+                                                    <%= item.product.setName %>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-400">
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-700 text-gray-300">
+                                            <%= item.stock.condition %>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-300">
+                                        <div class="flex items-center space-x-2">
+                                            <button onclick="updateQuantity(<%= item.id %>, <%= item.quantity - 1 %>)"
+                                                class="text-gray-500 hover:text-white">-</button>
+                                            <span>
+                                                <%= item.quantity %>
+                                            </span>
+                                            <button onclick="updateQuantity(<%= item.id %>, <%= item.quantity + 1 %>)"
+                                                class="text-gray-500 hover:text-white">+</button>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-bold text-yellow-500">$<%= (item.stock.price *
+                                            item.quantity).toFixed(2) %>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <button onclick="removeItem(<%= item.id %>)"
+                                            class="text-red-500 hover:text-red-400">✕</button>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-400">Total</p>
+                        <p class="text-3xl font-bold text-yellow-500">$<%= total.toFixed(2) %>
+                        </p>
+                    </div>
+                    <a href="/checkout"
+                        class="px-8 py-3 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-lg shadow-lg shadow-yellow-500/20 transition-all hover:scale-105 transform">
+                        Proceed to Checkout
+                    </a>
+                </div>
+                <% } else { %>
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
+                        <svg class="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <p class="text-gray-400 mb-4">Your cart is empty</p>
+                        <a href="/products" class="text-yellow-500 hover:underline">Continue shopping</a>
+                    </div>
+                    <% } %>
+        </main>
+
+        <%- include('../partials/storefront_footer') %>
+
+            <script>
+                async function updateQuantity(itemId, newQuantity) {
+                    if (newQuantity < 1) return;
+                    try {
+                        const response = await fetch(`/api/cart/${itemId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ quantity: newQuantity })
+                        });
+                        if (response.ok) window.location.reload();
+                    } catch (err) { console.error(err); }
+                }
+
+                async function removeItem(itemId) {
+                    if (!confirm('Remove this item?')) return;
+                    try {
+                        const response = await fetch(`/api/cart/${itemId}`, { method: 'DELETE' });
+                        if (response.ok) window.location.reload();
+                    } catch (err) { console.error(err); }
+                }
+            </script>
+</body>
+
+</html>
