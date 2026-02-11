@@ -8,9 +8,9 @@ __pycache__/
 .env
 
 # Database
-instance/
-*.db
-*.sqlite3
+# instance/
+# *.db
+# *.sqlite3
 
 # OS specific
 .DS_Store
