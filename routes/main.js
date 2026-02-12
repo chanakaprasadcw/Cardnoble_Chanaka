@@ -46,8 +46,11 @@ router.get('/products', async (req, res) => {
     });
 
     const totalPages = Math.ceil(total / perPage);
+    console.log('Rendering products.ejs', { total, totalPages, page });
     res.render('storefront/products', {
         title: 'Products',
+        totalItems: total,
+        totalPages,
         products: {
             items: products,
             total,
@@ -56,7 +59,15 @@ router.get('/products', async (req, res) => {
             hasPrev: page > 1,
             hasNext: page < totalPages,
         },
-        query: search || ''
+        page,
+        hasPrev: page > 1,
+        prevPage: page - 1,
+        hasNext: page < totalPages,
+        nextPage: page + 1,
+        query: {
+            q: search,
+            category: category
+        }
     });
 });
 

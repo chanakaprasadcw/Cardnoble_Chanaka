@@ -22,7 +22,7 @@ router.post('/login', async (req, res) => {
 });
 
 // ── Dashboard ────────────────────────────────────────
-router.get('/', isAdmin, async (req, res) => {
+router.get(['/', '/dashboard'], isAdmin, async (req, res) => {
     const [productCount, orderCount, userCount, revenue] = await Promise.all([
         prisma.product.count(),
         prisma.order.count(),

@@ -1,0 +1,63 @@
+<%- include('../partials/head', { title: 'Binders - CardNoble' }) %>
+    <%- include('../partials/storefront_nav') %>
+
+        <!-- Hero Section for Guests -->
+        <main style="max-width: 800px; margin: 0 auto; padding: 80px 24px; text-align: center;">
+            <div style="margin-bottom: 32px;">
+                <div
+                    style="display: inline-flex; width: 80px; height: 80px; border-radius: 20px; background: linear-gradient(135deg, #6366f1, #8b5cf6); align-items: center; justify-content: center; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(99,102,241,0.3);">
+                    <span style="font-size: 2.5rem;">📒</span>
+                </div>
+            </div>
+            <h1
+                style="font-family: 'Cinzel', serif; font-size: 2.8rem; font-weight: 900; color: #f1f5f9; margin-bottom: 16px; line-height: 1.1;">
+                Organize Your<br>
+                <span
+                    style="background: linear-gradient(135deg, #6366f1, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Card
+                    Collection</span>
+            </h1>
+            <p style="color: #94a3b8; font-size: 1.1rem; max-width: 520px; margin: 0 auto 40px; line-height: 1.7;">
+                Create digital binders to organize, track, and visualize your trading card collection. Drag and drop
+                cards into
+                custom grid layouts and track your collection progress.
+            </p>
+            <a href="/auth/login"
+                style="display: inline-block; padding: 14px 36px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 14px; color: white; font-weight: 700; font-size: 1.05rem; text-decoration: none; transition: all 0.3s; box-shadow: 0 4px 20px rgba(99,102,241,0.3);">
+                Sign In to Start
+            </a>
+            <a href="/auth/register"
+                style="display: inline-block; padding: 14px 36px; border: 1px solid #2a2a4a; border-radius: 14px; color: #94a3b8; font-weight: 600; font-size: 1.05rem; text-decoration: none; margin-left: 12px; transition: all 0.3s;">
+                Create Account
+            </a>
+
+            <!-- Feature Cards -->
+            <div
+                style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 80px; text-align: left;">
+                <div
+                    style="background: linear-gradient(145deg, #1a1a2e, #16162a); border: 1px solid #2a2a4a; border-radius: 16px; padding: 24px;">
+                    <div style="font-size: 1.5rem; margin-bottom: 12px;">🎯</div>
+                    <div style="font-weight: 700; color: #f1f5f9; margin-bottom: 6px;">Custom Grids</div>
+                    <div style="font-size: 0.85rem; color: #64748b; line-height: 1.5;">Choose from 2×2 to 4×4 grid
+                        layouts to
+                        match your physical binder.</div>
+                </div>
+                <div
+                    style="background: linear-gradient(145deg, #1a1a2e, #16162a); border: 1px solid #2a2a4a; border-radius: 16px; padding: 24px;">
+                    <div style="font-size: 1.5rem; margin-bottom: 12px;">📊</div>
+                    <div style="font-weight: 700; color: #f1f5f9; margin-bottom: 6px;">Track Progress</div>
+                    <div style="font-size: 0.85rem; color: #64748b; line-height: 1.5;">Mark cards as collected and watch
+                        your
+                        completion percentage grow.</div>
+                </div>
+                <div
+                    style="background: linear-gradient(145deg, #1a1a2e, #16162a); border: 1px solid #2a2a4a; border-radius: 16px; padding: 24px;">
+                    <div style="font-size: 1.5rem; margin-bottom: 12px;">🔀</div>
+                    <div style="font-weight: 700; color: #f1f5f9; margin-bottom: 6px;">Drag & Drop</div>
+                    <div style="font-size: 0.85rem; color: #64748b; line-height: 1.5;">Rearrange your cards with
+                        intuitive
+                        drag-and-drop interactions.</div>
+                </div>
+            </div>
+        </main>
+
+        <%- include('../partials/storefront_footer') %>
